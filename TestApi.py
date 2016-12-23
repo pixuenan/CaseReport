@@ -97,11 +97,11 @@ class TestApi:
                 print " " + result.getInputText()
                 self.display_aas(result, output_text)
                 self.display_negations(result, output_text)
-                self.display_utterances(result, output=output_text)
+                self.display_utterances(result, display_pcmlist=True, output=output_text)
         output_text.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) < 5:
+    if len(sys.argv) < 3:
         print('input file and output file needed')
         exit(1)
     else:
@@ -111,10 +111,8 @@ if __name__ == '__main__':
             if sys.argv[i] == "-i":
                 input_file = sys.argv[i+1]
                 i = i + 2
-            elif sys.argv[i] == "-o":
-                output_file = sys.argv[i+1]
-                i = i + 2
             else:
                 i += 1
+        output_file = input_file.split('.')[0] + 'result.txt'
         server_options = ["-R", "CHV,HPO,ICD10CM,MSH,RXNORM", "-V", "USAbase", "-A"]
         inst.process(input_file, output_file, server_options)
