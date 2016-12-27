@@ -8,6 +8,8 @@ Xuenan Pi
 
 class MetamapParser:
     def __init__(self):
+        # the vocabulary to mined out the terms, key is abbreviation, value is name and source
+        # if and only if both sources are in the result sources, the term will be extracted
         self.vocabulary = {"[popg]": ["[Population Group]", ("CHV", "MSH")],
                            "[dsyn]": ["[Disease or Syndrome]", ("ICD10CM")],
                            "[neop]": ["[Neoplastic Process]", ("HPO", "ICD10CM")],
@@ -21,6 +23,9 @@ class MetamapParser:
                            "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
                            }
 
+        # the needed keys in every mapping result
+        self.needed_keys = ["Concept Name", "Semantic Types", "Sources"]
+
     def read_file(self, input_file):
         file_content = open(input_file)
         result_list = file_content.readlines()
@@ -29,70 +34,46 @@ class MetamapParser:
 
     def group(self, result_list, break_word):
         """Group the result in the list between the break word together."""
-        utterance_list = []
-        utterance = []
+        element_list = []
+        element = []
         for result_idx, result in enumerate(result_list):
             if result.strip().startswith(break_word):
-                utterance_list += [utterance]
-                utterance = []
+                element_list += [element]
+                element = []
             elif result_idx == len(result_list)-1:
-                utterance += [result.strip()]
-                utterance_list += [utterance]
+                element += [result.strip()]
+                element_list += [element]
             else:
-                utterance += [result.strip()]
-        return utterance_list
+                element += [result.strip()]
+        return element_list
 
-    def convert(self, utterance_list):
-        """Convert the utterance string "Id: 1" to dictionary {"Id": "1"}."""
-        list_utterance_dict = []
-        for utterance in utterance_list:
-            utterance_dict = {}
-            for item in utterance:
-                item_key, item_value = item.split(':')
-                utterance_dict[item_key] = item_value.strip()
-            if len(utterance_dict) != len(utterance):
-                print "+++:"
-                print utterance
-                print "---:"
-                print utterance_dict
-            list_utterance_dict += utterance_dict
-        return list_utterance_dict
-
-    # def process(self, input_file):
-    #     result_list = self.read_file(input_file)
-    #     # group the result from one sentence together
-    #     utterances = self.group(result_list, "Utterance:")
-    #     processed = []
-    #     for utterance in utterances:
-    #         # group the result from one phrase together
-    #         phrases = self.group(utterance, "Phrase:")
-    #         # print phrases
-    #         list_phrase_dict = []
-    #         for phrase in phrases:
-    #             print phrase
-    #             # convert the result string into dictionary
-    #             list_phrase_dict += [self.convert(phrase)]
-    #         processed += [list_phrase_dict]
-    #     print "final"
-    #     for i in processed:
-    #         print i
+    def convert(self, element):
+        """Convert the element string "Id: 1" to dictionary {"Id": "1"}."""
+        element_dict = {}
+        for item in element:
+            item_key, item_value = item.split(':')
+            element_dict[item_key] = item_value.strip()
+        return element_dict
 
     def process(self, input_file):
         result_list = self.read_file(input_file)
         # group the result from one sentence together
         utterances = self.group(result_list, "Utterance:")
-        processed = []
+        grouped_utterance = []
         for utterance in utterances:
             # group the result from one phrase together
+            grouped_phrases = []
             phrases = self.group(utterance, "Phrase:")
-            # print phrases
-            # print "+++++++"
-            # print self.convert(phrases)
-            # print "======="
-            processed += [self.convert(phrases)]
+            for phrase in phrases:
+                mappings = self.group(phrase, "Mappings:")
+                # convert the string into dictionary format
+                grouped_phrases += [[self.convert(mapping) for mapping in mappings]]
+            grouped_utterance += [[grouped_phrases]]
+        return grouped_utterance
 
 if __name__ == "__main__":
     test = MetamapParser()
     print "test"
-    test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\case1result.txt")
+    # process the case report to group the sentence, phrase and mapping result together
+    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\resulttest.txt")
 
