@@ -19,7 +19,7 @@ class MetamapParser:
                            "[mobd]": ["[Mental or Behavioral Dysfunction", ("MSH")],
                            "[diap]": ["[Diagnostic Procedure]", ("MSH", "CHV")],
                            "[lbpr]": ["[Laboratory Procedure]", ("MSH", "CHV")],
-                           "[phsu]": ["[Pharmacologic Substance]", ("RXNORM")],
+                           "[phsu]": ["[Pharmacologic Substance]", ("MSH", "CHV", "RXNORM")],
                            "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
                            }
 
@@ -31,13 +31,6 @@ class MetamapParser:
         result_list = file_content.readlines()
         file_content.close()
         return result_list
-
-    def clean_re_mapping(self, mapping_list):
-        cleaned_list = []
-        for mapping in mapping_list:
-            if mapping not in cleaned_list:
-                cleaned_list += [mapping]
-        return cleaned_list
 
     def group(self, result_list, break_word):
         """Group the result in the list between the break word together."""
@@ -119,8 +112,22 @@ class MetamapParser:
                 pruned_utterances += [utterance_unit_list]
         return pruned_utterances
 
-    def match_source(self, semantic_types, sources):
-        required_sources = self.vocabulary[semantic_types][1]
+    def check_semantic_type(self, semantic_types):
+        """Check if the mapping result has semantic types needed."""
+        # the semantic types can be multiple types
+        semantic_type = False
+        if "," in semantic_types:
+            semantic_types_list = ["[%s]" % s_type.strip() for s_type in semantic_types[1:-1].split(",")]
+            for s_type in semantic_types_list:
+                if s_type in self.vocabulary.keys():
+                    semantic_type = s_type
+                    break
+        elif semantic_types in self.vocabulary.keys():
+            semantic_type = semantic_types
+        return semantic_type
+
+    def match_source(self, semantic_type, sources):
+        required_sources = self.vocabulary[semantic_type][1]
         source_not_match = False
         for source in required_sources:
             if source not in sources:
@@ -138,11 +145,13 @@ class MetamapParser:
                 mapping_idx = 0
                 while mapping_idx < len(phrase["mapping"]):
                     mapping = phrase["mapping"][mapping_idx]
-                    if mapping["Semantic Types"] not in self.vocabulary.keys():
+                    semantic_type_needed = self.check_semantic_type(mapping["Semantic Types"])
+                    if not semantic_type_needed:
                         del phrase["mapping"][mapping_idx]
-                    elif self.match_source(mapping["Semantic Types"], mapping["Sources"]):
+                    elif self.match_source(semantic_type_needed, mapping["Sources"]):
                         del phrase["mapping"][mapping_idx]
                     else:
+                        mapping["Semantic Types"] = semantic_type_needed
                         mapping_idx += 1
 
                 if not phrase["mapping"]:
@@ -154,8 +163,9 @@ class MetamapParser:
 if __name__ == "__main__":
     test = MetamapParser()
     print "test"
+    # print test.check_semantic_type("[inch, phsu]")
     # process the case report to group the sentence, phrase and mapping result together
-    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\case1result.txt")
+    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\case5result.txt")
     # turn the processed case from list into dictionary, and only keep the needed field for every mapping result
     pruned_case = test.prune(processed_case)
     matched_case = test.match(pruned_case)
