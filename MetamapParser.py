@@ -12,7 +12,7 @@ class MetamapParser:
         # if and only if both sources are in the result sources, the term will be extracted
         self.vocabulary = {"[popg]": ["[Population Group]", ("CHV", "MSH")],
                            "[dsyn]": ["[Disease or Syndrome]", ("ICD10CM")],
-                           "[neop]": ["[Neoplastic Process]", ("HPO", "ICD10CM")],
+                           "[neop]": ["[Neoplastic Process]", ("ICD10CM")],
                            "[sosy]": ["[Sign or Symptom]", ("ICD10CM")],
                            "[patf]": ["[Pathologic Function]", ("CHV", "ICD10CM")],
                            "[fndg]": ["[Finding]", ("HPO", "ICD10CM")],
@@ -31,6 +31,13 @@ class MetamapParser:
         result_list = file_content.readlines()
         file_content.close()
         return result_list
+
+    def clean_re_mapping(self, mapping_list):
+        cleaned_list = []
+        for mapping in mapping_list:
+            if mapping not in cleaned_list:
+                cleaned_list += [mapping]
+        return cleaned_list
 
     def group(self, result_list, break_word):
         """Group the result in the list between the break word together."""
@@ -59,16 +66,21 @@ class MetamapParser:
         """"""
         result_list = self.read_file(input_file)
         # group the result from one sentence together
-        utterances = self.group(result_list, "Utterance:")
         grouped_utterance = []
+        utterances = self.group(result_list, "Utterance:")
         for utterance in utterances:
             # group the result from one phrase together
             grouped_phrases = []
             phrases = self.group(utterance, "Phrase:")
             for phrase in phrases:
-                mappings = self.group(phrase, "Mappings:")
-                # convert the string into dictionary format
-                grouped_phrases += [[self.convert(mapping) for mapping in mappings]]
+                grouped_mappings = []
+                mappings = self.group(phrase, "Map Score:")
+                # remove the repetitive mapping result
+                for mapping in mappings:
+                    terms = self.group(mapping, "Score:")
+                    # convert the string into dictionary format
+                    grouped_mappings += [[self.convert(term) for term in terms]]
+                grouped_phrases += [grouped_mappings]
             grouped_utterance += [grouped_phrases]
         return grouped_utterance
 
@@ -81,59 +93,72 @@ class MetamapParser:
         for utterance in grouped_utterance:
             utterance_unit_list = []
             # the first element of the utterance list is the utterance text
-            if "Utterance text" in utterance[0][0].keys():
+            if "Utterance text" in utterance[0][0][0].keys():
                 utterance_dict = dict()
-                utterance_dict["Utterance text"] = utterance[0][0]["Utterance text"]
+                utterance_dict["Utterance text"] = utterance[0][0][0]["Utterance text"]
                 utterance_unit_list += [utterance_dict]
                 for phrase in utterance:
                     # check if the phrase has mapping result
                     if len(phrase) > 1:
                         phrase_dict = dict()
                         # the first element of the phrase list is the text of the phrase
-                        phrase_dict["text"] = phrase[0]["text"]
+                        phrase_dict["text"] = phrase[0][0]["text"]
                         phrase_dict["mapping"] = []
                         for mapping in phrase[1:]:
-                            mapping_dict = {}
-                            for key in self.needed_keys:
-                                mapping_dict[key] = mapping[key]
-                            # check if the mapping pruned_utterances is already in the dictionary, repetitive mapping
-                            # case
-                            if mapping_dict not in phrase_dict["mapping"]:
-                                phrase_dict["mapping"] += [mapping_dict]
+                            for term in mapping:
+                                if term:
+                                    term_dict = dict()
+                                    for key in self.needed_keys:
+                                        term_dict[key] = term[key]
+                                    # check if the mapping pruned_utterances is already in the dictionary, repetitive
+                                    # mapping case
+                                    if term_dict not in phrase_dict["mapping"]:
+                                        phrase_dict["mapping"] += [term_dict]
+                                        # print phrase_dict
                         utterance_unit_list += [phrase_dict]
                 pruned_utterances += [utterance_unit_list]
         return pruned_utterances
+
+    def match_source(self, semantic_types, sources):
+        required_sources = self.vocabulary[semantic_types][1]
+        source_not_match = False
+        for source in required_sources:
+            if source not in sources:
+                source_not_match = True
+        return source_not_match
 
     def match(self, pruned_utterances):
         """ Further clean the result by match the semantic type and the correspond sources. Only keep the mapping result
         if the semantic type is in the vocabulary and the sources are also correct."""
         for utterance in pruned_utterances:
-            deleted_phrase = 0
-            for phrase_idx, phrase in enumerate(utterance[1:]):
-                for idx, mapping in enumerate(phrase["mapping"]):
-                    if not mapping["Semantic Types"] in self.vocabulary.keys():
-                        del phrase["mapping"][idx]
+            phrase_idx = 0
+            while phrase_idx < len(utterance[1:]):
+                phrase = utterance[1:][phrase_idx]
+
+                mapping_idx = 0
+                while mapping_idx < len(phrase["mapping"]):
+                    mapping = phrase["mapping"][mapping_idx]
+                    if mapping["Semantic Types"] not in self.vocabulary.keys():
+                        del phrase["mapping"][mapping_idx]
+                    elif self.match_source(mapping["Semantic Types"], mapping["Sources"]):
+                        del phrase["mapping"][mapping_idx]
                     else:
-                        required_sources = self.vocabulary[mapping["Semantic Types"]][1]
-                        source_not_match = False
-                        for source in required_sources:
-                            if source not in mapping["Sources"]:
-                                source_not_match = True
-                        if source_not_match:
-                            del phrase["mapping"][idx]
+                        mapping_idx += 1
+
                 if not phrase["mapping"]:
-                    del utterance[max(0, min(phrase_idx+1, phrase_idx+1-deleted_phrase))]
-                    deleted_phrase += 1
+                    utterance.remove(phrase)
+                else:
+                    phrase_idx += 1
         return pruned_utterances
 
 if __name__ == "__main__":
     test = MetamapParser()
     print "test"
     # process the case report to group the sentence, phrase and mapping result together
-    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\resulttest.txt")
+    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\case1result.txt")
     # turn the processed case from list into dictionary, and only keep the needed field for every mapping result
     pruned_case = test.prune(processed_case)
     matched_case = test.match(pruned_case)
     for i in matched_case:
-        print i
-        #
+        for j in i:
+            print j
