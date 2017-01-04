@@ -20,7 +20,9 @@ class MetamapParser:
                            "[diap]": ["[Diagnostic Procedure]", ("MSH", "CHV")],
                            "[lbpr]": ["[Laboratory Procedure]", ("MSH", "CHV")],
                            "[phsu]": ["[Pharmacologic Substance]", ("MSH", "CHV", "RXNORM")],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")],
+                           "[tmco]": ["[Temporal Concept]", ("SNOMEDCT_US")],
+                           "[qnco]": ["[Quantitative Concept]", ("SNOMEDCT_US")]
                            }
 
         # the needed keys in every mapping result
@@ -30,6 +32,15 @@ class MetamapParser:
         file_content = open(input_file)
         result_list = file_content.readlines()
         file_content.close()
+        return self.clean_none_head(result_list)
+
+    def clean_none_head(self, result_list):
+        """ Remove the None. at the beginning of the sentence."""
+        for idx, sentence in enumerate(result_list):
+            if sentence.startswith("None."):
+                result_list[idx] = sentence[5:]
+            else:
+                result_list[idx] = sentence.strip()
         return result_list
 
     def group(self, result_list, break_word):
@@ -37,7 +48,7 @@ class MetamapParser:
         element_list = []
         element = []
         for result_idx, result in enumerate(result_list):
-            if result.strip().startswith(break_word):
+            if result.strip().startswith(break_word) and element:
                 element_list += [element]
                 element = []
             elif result_idx == len(result_list) - 1:
@@ -51,7 +62,7 @@ class MetamapParser:
         """Convert the element string "Id: 1" to dictionary {"Id": "1"}."""
         element_dict = {}
         for item in element:
-            item_key, item_value = item.split(':')
+            item_key, item_value = item.split(':', 1)
             element_dict[item_key] = item_value.strip()
         return element_dict
 
@@ -151,7 +162,7 @@ class MetamapParser:
                     elif self.match_source(semantic_type_needed, mapping["Sources"]):
                         del phrase["mapping"][mapping_idx]
                     else:
-                        mapping["Semantic Types"] = semantic_type_needed
+                        mapping["Semantic Types"] = self.vocabulary[semantic_type_needed][0]
                         mapping_idx += 1
 
                 if not phrase["mapping"]:
@@ -165,10 +176,11 @@ if __name__ == "__main__":
     print "test"
     # print test.check_semantic_type("[inch, phsu]")
     # process the case report to group the sentence, phrase and mapping result together
-    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\case5result.txt")
+    processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase1result.txt")
     # turn the processed case from list into dictionary, and only keep the needed field for every mapping result
     pruned_case = test.prune(processed_case)
     matched_case = test.match(pruned_case)
     for i in matched_case:
+    #     print i
         for j in i:
             print j
