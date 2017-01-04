@@ -5,12 +5,12 @@ Xuenan Pi
 23/12/2016
 """
 
-
 class MetamapParser:
     def __init__(self):
         # the vocabulary to mined out the terms, key is abbreviation, value is name and source
         # if and only if both sources are in the result sources, the term will be extracted
         self.vocabulary = {"[popg]": ["[Population Group]", ("CHV", "MSH")],
+                           "[aggp]": ["[Age Group]", ("CHV", "MSH")],
                            "[dsyn]": ["[Disease or Syndrome]", ("ICD10CM")],
                            "[neop]": ["[Neoplastic Process]", ("ICD10CM")],
                            "[sosy]": ["[Sign or Symptom]", ("ICD10CM")],
