@@ -6,6 +6,7 @@ Xuenan Pi
 """
 
 class MetamapParser:
+
     def __init__(self):
         # the vocabulary to mined out the terms, key is abbreviation, value is name and source
         # if and only if both sources are in the result sources, the term will be extracted
@@ -20,9 +21,7 @@ class MetamapParser:
                            "[diap]": ["[Diagnostic Procedure]", ("MSH", "CHV")],
                            "[lbpr]": ["[Laboratory Procedure]", ("MSH", "CHV")],
                            "[phsu]": ["[Pharmacologic Substance]", ("MSH", "CHV", "RXNORM")],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")],
-                           "[tmco]": ["[Temporal Concept]", ("SNOMEDCT_US")],
-                           "[qnco]": ["[Quantitative Concept]", ("SNOMEDCT_US")]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
                            }
 
         # the needed keys in every mapping result
