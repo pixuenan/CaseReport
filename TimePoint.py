@@ -13,15 +13,10 @@ class TimePoint:
         self.age_need_types = ["[Age Group]", "[Population Group]"]
 
         self.time_need_types = ["[Disease or Syndrome]", "[Neoplastic Process]", "[Sign or Symptom]",
-                                      "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]"]
+                                "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]"]
 
         self.age_pattern = re.compile(r"([^\s]+?)(\s|-)(year|month|week|day)(s\s|-)(old)")
-        # past three years, three years ago, 4 days later, after 7 weeks
-        self.time_pattern = re.compile(
-            r"([pP]ast|[Aa]fter)?(\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old).+?(later|ago)?")
-        result = ''.join(list(result.groups(""))).strip()
-        # 3-year history, past history, history of
-        self.history_pattern = re.compile(r"")
+
 
     def collect_needed_semantic_types(self, utterance, need_type):
         semantic_types = []
@@ -44,35 +39,80 @@ class TimePoint:
             utterance[1]["mapping"].insert(0, age_dict)
         return utterance
 
+    def detect_age_string(self, text):
+        """ Detect age information in the phrase.
+         Result: list of detected age string.
+        """
+        age_string_list = []
+        while self.age_pattern.search(text):
+            age_result = self.age_pattern.search(text)
+            age = ''.join(age_result.group(1, 2, 3, 4, 5))
+            age_string_list += [age]
+            text = text[age_result.end():]
+        return age_string_list
+
+    def detect_time_string(self, text):
+        """ Detect age information in the phrase.
+         Result: list of detected age string.
+        """
+        # past three years, three years ago, 4 days later, after 7 weeks
+        time_pattern = re.compile(
+            r"([pP]ast|[Aa]fter)?((\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old)).+?(later|ago)?")
+        time_string_list = []
+        while time_pattern.search(text):
+            time_result = time_pattern.search(text)
+            need_list = list(time_result.groups(""))
+            time = " ".join([need_list[0], need_list[1], need_list[-1]])
+            time_string_list += [time.strip()]
+            text = text[time_result.end():]
+        return time_string_list
+
+    def detect_history_string(self, text):
+        """ Detect history information in the phrase.
+         Result: list of detected history string.
+        """
+        # 3-year history, past history, history of
+        history_pattern = re.compile(r"((\s|^)([^\s]+?)(\s|-)(year)s?)?\s(history)")
+        history_string_list = []
+        while history_pattern.search(text):
+            history_result = history_pattern.search(text)
+            need_list = list(history_result.groups(""))
+            history = " ".join([need_list[0], need_list[-1]])
+            history_string_list += [history.strip()]
+            text = text[history_result.end():]
+        return history_string_list
+
+    def index_in_the_list(self, result_list, text):
+        """ Return the index of the regex result."""
+        index_list = []
+        for result in result_list:
+            index = text.index(result)
+            index_list += [index]
+        return index_list
+
     def detect_time_point(self, utterance):
         """ Detect time point word in the sentence."""
         ori_text = utterance[0]["Utterance text"]
         time_point_dict = dict()
         time_point_dict["Time Point"] = []
-        text_for_age_detec, text_for_history_detec, text_for_time_detec = ("%s" % ori_text)*3
+        text_for_age_detec = text_for_history_detec = text_for_time_detec = ori_text
 
-        while self.age_pattern.search(text_for_age_detec):
-            age = self.age_pattern.search(text_for_age_detec)
-            time_point_dict["Time Point"] += [age]
-            text_for_age_detec = text_for_age_detec[age.end():]
+        time_point_dict["Time Point"] += self.detect_age_string(text_for_age_detec)
+        time_point_dict["Time Point"] += self.detect_history_string(text_for_history_detec)
+        regex_index_result = self.index_in_the_list(time_point_dict["Time Point"], ori_text)
 
-        while self.time_pattern.search(text_for_time_detec):
-            time_point = self.time_pattern.search(text_for_time_detec)
-            time_point_dict["Time Point"] += [time_point]
-            text_for_time_detec = text_for_time_detec[time_point.end():]
+        for time_string in self.detect_time_string(text_for_time_detec):
+            if ori_text.index(time_string) not in regex_index_result:
+                time_point_dict["Time Point"] += [time_string]
 
-        while self.history_pattern.search(text_for_history_detec):
-            history_point = self.history_pattern.search(text_for_history_detec)
-            time_point_dict["Time Point"] += [history_point]
-            text_for_history_detec = text_for_history_detec[history_point.end():]
-        utterance.insert(0, time_point_dict)
+        if time_point_dict["Time Point"]:
+            utterance.insert(1, time_point_dict)
         return utterance
 
     def time_point_extraction(self, matched_utterances):
         """ Extract time point terms"""
         age_detected_flag = False
         for idx, utterance in enumerate(matched_utterances):
-            print utterance
             if not age_detected_flag:
                 semantic_types = self.collect_needed_semantic_types(utterance, self.age_need_types)
                 if semantic_types:
@@ -96,7 +136,7 @@ if __name__ == "__main__":
     matched_case = test.match(pruned_case)
 
     time_point_test = TimePoint()
-    time_point_test.time_point_extraction(matched_case)
-    # for i in matched_case:
-    #     for j in i:
-    #         print j
+    result = time_point_test.time_point_extraction(matched_case)
+    for i in result:
+        for j in i:
+            print j
