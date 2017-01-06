@@ -117,7 +117,6 @@ class MetamapParser:
                                     # mapping case
                                     if term_dict not in phrase_dict["mapping"]:
                                         phrase_dict["mapping"] += [term_dict]
-                                        # print phrase_dict
                         utterance_unit_list += [phrase_dict]
                 pruned_utterances += [utterance_unit_list]
         return pruned_utterances
@@ -180,6 +179,5 @@ if __name__ == "__main__":
     pruned_case = test.prune(processed_case)
     matched_case = test.match(pruned_case)
     for i in matched_case:
-    #     print i
         for j in i:
             print j

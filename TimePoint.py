@@ -6,6 +6,7 @@ Xuenan Pi
 """
 import MetamapParser
 import re
+from utility import index_in_the_list
 
 class TimePoint:
     def __init__(self):
@@ -13,10 +14,10 @@ class TimePoint:
         self.age_need_types = ["[Age Group]", "[Population Group]"]
 
         self.time_need_types = ["[Disease or Syndrome]", "[Neoplastic Process]", "[Sign or Symptom]",
-                                "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]"]
+                                "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]",
+                                "[Pharmacologic Substance]"]
 
         self.age_pattern = re.compile(r"([^\s]+?)(\s|-)(year|month|week|day)(s\s|-)(old)")
-
 
     def collect_needed_semantic_types(self, utterance, need_type):
         semantic_types = []
@@ -82,14 +83,6 @@ class TimePoint:
             text = text[history_result.end():]
         return history_string_list
 
-    def index_in_the_list(self, result_list, text):
-        """ Return the index of the regex result."""
-        index_list = []
-        for result in result_list:
-            index = text.index(result)
-            index_list += [index]
-        return index_list
-
     def detect_time_point(self, utterance):
         """ Detect time point word in the sentence."""
         ori_text = utterance[0]["Utterance text"]
@@ -99,7 +92,7 @@ class TimePoint:
 
         time_point_dict["Time Point"] += self.detect_age_string(text_for_age_detec)
         time_point_dict["Time Point"] += self.detect_history_string(text_for_history_detec)
-        regex_index_result = self.index_in_the_list(time_point_dict["Time Point"], ori_text)
+        regex_index_result = index_in_the_list(time_point_dict["Time Point"], ori_text)
 
         for time_string in self.detect_time_string(text_for_time_detec):
             if ori_text.index(time_string) not in regex_index_result:
@@ -128,7 +121,6 @@ class TimePoint:
 if __name__ == "__main__":
     test = MetamapParser.MetamapParser()
     print "test"
-    # print test.check_semantic_type("[inch, phsu]")
     # process the case report to group the sentence, phrase and mapping result together
     processed_case = test.process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result.txt")
     # turn the processed case from list into dictionary, and only keep the needed field for every mapping result
@@ -138,5 +130,15 @@ if __name__ == "__main__":
     time_point_test = TimePoint()
     result = time_point_test.time_point_extraction(matched_case)
     for i in result:
-        for j in i:
-            print j
+        print i[0]
+        for j in i[1:]:
+            if 'Time Point' in j.keys():
+                print "Time Point: ", j['Time Point']
+            elif 'mapping' in j.keys():
+                for z in j['mapping']:
+                    if 'Age' in z.keys():
+                        print "Age: ", z['Age']
+                    else:
+                        print z['Concept Name'], z['Semantic Types']
+    #     for j in i:
+    #         print j
