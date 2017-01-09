@@ -26,7 +26,7 @@ class UtteranceProcess(object):
                            "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
                            }
 
-        self.needed_keys = ["Matched Words", "Concept Name", "Semantic Types", "Sources"]
+        self.needed_keys = ["Concept Name", "Semantic Types", "Sources", "Positional Info"]
 
     def check_semantic_type(self, semantic_types):
         """Check if the mapping result has semantic types needed."""
@@ -83,6 +83,7 @@ class UtteranceProcess(object):
         # the first element of the utterance list is the utterance text
         utterance_dict = dict()
         utterance_dict["Utterance text"] = self.utterance[0][0][0]["Utterance text"]
+        utterance_dict["Utterance start index"] = self.utterance[0][0][0]["Position"]
         utterance_unit_list += [utterance_dict]
         for phrase in self.utterance:
             # check if the phrase has mapping result
@@ -93,7 +94,7 @@ class UtteranceProcess(object):
                 phrase_dict["mapping"] = []
                 for mapping in phrase[1:]:
                     for term in mapping:
-                        if term:
+                        if term and not int(term["Negation Status"].strip()):
                             term_dict = dict()
                             for key in self.needed_keys:
                                 term_dict[key] = term[key]
@@ -120,9 +121,51 @@ class UtteranceProcess(object):
         if search_result:
             for m in search_result:
                 negative_word_dict["Negative word"] += [(m.start(), m.group().strip().strip("."))]
-        self.utterance.append(negative_word_dict)
+        if negative_word_dict["Negative word"]:
+            self.utterance.append(negative_word_dict)
         return self.utterance
 
+    def order_terms(self):
+        """ Order the mapping terms by their location in the sentence.
+        Return: {"Utterance text":,
+        "Age":, "Gender":,
+        "mapping result": [
+        "Time Point", ("Concept Name","Semantic types")]}"""
+        result_utterance = self.utterance[0]
+        text = self.utterance[0]["Utterance text"]
+        print text
+        mapping_result = []
+        index_list = []
+        term_list = []
+        for phrase in self.utterance[1:]:
+            print phrase
+            if "mapping" in phrase.keys():
+                mapping = phrase["mapping"]
+                for term in mapping:
+                    # age and gender
+                    if "Age" in term.keys():
+                        result_utterance["Age"] = term["Age"]
+                        if "Gender" not in term.keys():
+                            result_utterance["Gender"] = "None"
+                        else:
+                            result_utterance["Gender"] = term["Gender"]
+                    # concept term
+                    else:
+                        print "match word: ", term["Matched Words"]
+                        index = text.upper().index(term["Matched Words"][1:-1].split(",")[0].upper())
+                        index_list += [index]
+                        term_list += [(term["Concept Name"], term["Semantic Types"])]
+            # time point
+            elif "Time Point" in phrase.keys():
+                for time in phrase["Time Point"]:
+                    index = text.index(time)
+                    index_list += [index]
+                    term_list += [time]
+
+        print 'i: ', index_list
+        print 't: ', term_list
+        result_utterance["mapping_result"] = mapping_result
+        return result_utterance
 
 
 

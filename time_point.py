@@ -88,7 +88,7 @@ def detect_time_point(utterance):
                 time_point_dict["Time Point"] += [time_string]
 
     if time_point_dict["Time Point"]:
-        utterance.insert(1, time_point_dict)
+        utterance.append(time_point_dict)
     return utterance
 
 
@@ -96,13 +96,11 @@ def detect_gender(utterance):
     genders = ["Woman", "Man", "Female", "Male", "Boy", "Girl"]
     for phrase in utterance[1:]:
         if "Age" in phrase["mapping"][0].keys():
-            gender_dict = dict()
             for mapping in phrase["mapping"][1:]:
                 if mapping["Semantic Types"] == "[Population Group]":
                     if mapping["Concept Name"] in genders:
-                        gender_dict["Gender"] = mapping["Concept Name"]
+                        phrase["mapping"][0]["Gender"] = mapping["Concept Name"]
                     phrase["mapping"].remove(mapping)
-            phrase["mapping"].insert(1, gender_dict)
     return utterance
 
 

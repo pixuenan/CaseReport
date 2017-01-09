@@ -109,7 +109,8 @@ if __name__ == '__main__':
     # detect the negative terms in the utterance
     # order the terms in the utterance by index
     for utterance in result:
-        utterance_result = UtteranceProcess(utterance).detect_negative_words()
-        for j in utterance_result:
+        # utterance_result = UtteranceProcess(utterance).detect_negative_words()
+        # UtteranceProcess(utterance_result).order_terms()
+        for j in utterance:
             print "print", j
 
