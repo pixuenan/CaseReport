@@ -5,7 +5,8 @@ Xuenan Pi
 23/12/2016
 """
 from utterance_process import UtteranceProcess
-from time_point import collect_needed_semantic_types, detect_age, detect_time_point
+from time_point import detect_age, detect_time_point, detect_gender
+from utility import collect_needed_semantic_types
 
 
 def read_file(input_file):
@@ -86,6 +87,8 @@ def time_point_extraction(matched_utterances):
             semantic_types = collect_needed_semantic_types(utterance, age_need_types)
             if semantic_types:
                 matched_utterances[idx] = detect_age(utterance)
+                # detect gender
+                matched_utterances[idx] = detect_gender(utterance)
                 age_detected_flag = True
                 continue
         # detect time point only when in the text there is disease or phenotype terms
@@ -107,5 +110,5 @@ if __name__ == '__main__':
     # order the terms in the utterance by index
     for i in result:
         for j in i:
-            print j
+            print "print", j
 

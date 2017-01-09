@@ -5,20 +5,10 @@ Xuenan Pi
 23/12/2016
 """
 import re
-from utility import index_in_the_list
+from utility import index_in_the_list, collect_needed_semantic_types
 
 
 age_pattern = re.compile(r"([^\s]+?)(\s|-)(year|month|week|day)(s\s|-)(old)")
-
-
-def collect_needed_semantic_types(utterance, need_type):
-    semantic_types = []
-    for phrase in utterance[1:]:
-        mapping_list = phrase["mapping"]
-        for mapping in mapping_list:
-            if mapping["Semantic Types"] in need_type:
-                semantic_types += [mapping["Semantic Types"]]
-    return semantic_types
 
 
 def detect_age_string(text):
@@ -100,4 +90,23 @@ def detect_time_point(utterance):
     if time_point_dict["Time Point"]:
         utterance.insert(1, time_point_dict)
     return utterance
+
+
+def detect_gender(utterance):
+    genders = ["Woman", "Man", "Female", "Male", "Boy", "Girl"]
+    for phrase in utterance[1:]:
+        if "Age" in phrase["mapping"][0].keys():
+            gender_dict = dict()
+            for mapping in phrase["mapping"][1:]:
+                if mapping["Semantic Types"] == "[Population Group]":
+                    if mapping["Concept Name"] in genders:
+                        gender_dict["Gender"] = mapping["Concept Name"]
+                    phrase["mapping"].remove(mapping)
+            phrase["mapping"].insert(1, gender_dict)
+    return utterance
+
+
+
+
+
 
