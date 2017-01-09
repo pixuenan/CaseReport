@@ -9,39 +9,9 @@ class TestApi:
     def __init__(self):
         self.api = MetaMapApiImpl()
 
-    def display_aas(self, result, output=sys.stdout):
-        aalist = result.getAcronymsAbbrevs()
-        if len(aalist) > 0:
-            for e in aalist:
-                output.write('Acronym: %s\n' % e.getAcronym())
-                output.write('Expansion: %s\n' % e.getExpansion())
-                output.write('Count list: %s\n' % e.getCountList())
-                output.write('CUI list: %s\n' % e.getCUIList())
-        else:
-            output.write('None.')
-
-    def display_negations(self, result, output=sys.stdout):
-        neglist = result.getNegations()
-        if len(neglist) > 0:
-            for e in neglist:
-                output.write("type: %s, " % e.getType())
-                output.write("Trigger: %s: [ " % e.getTrigger())
-                for pos in  e.getTriggerPositionList():
-                    output.write('%s,' % pos)
-                output.write('], ')
-                output.write("ConceptPairs: %s: [ " % e.getConceptPairList())
-                for pair in  e.getTriggerPositionList():
-                    output.write('%s,' % pair)
-                output.write('], ')
-                output.write("Concept Positions: %s: [ " % e.getConceptPositionList())
-                for pos in  e.getTriggerPositionList():
-                    output.write('%s,' % pos)
-                output.write(']\n')
-
     def display_utterances(self, result, display_pcmlist=False, output=sys.stdout):
         for utterance in result.getUtteranceList():
             output.write("Utterance:\n")
-            output.write(" Id: %s\n" % utterance.getId())
             output.write(" Utterance text: %s\n" % utterance.getString())
             output.write(" Position: %s\n" % utterance.getPosition())
             if display_pcmlist:
@@ -54,13 +24,10 @@ class TestApi:
                         output.write("  Score: %s\n" % ev.getScore())
                         output.write("  Concept Id: %s\n" % ev.getConceptId())
                         output.write("  Concept Name: %s\n" % ev.getConceptName())
-                        output.write("  Preferred Name: %s\n" % ev.getPreferredName())
-                        output.write("  Matched Words: %s\n" % ev.getMatchedWords())
                         output.write("  Semantic Types: %s\n" % ev.getSemanticTypes())
-                        output.write("  is Head?: %s\n" % ev.isHead())
-                        output.write("  is Overmatch?: %s\n" % ev.isOvermatch())
                         output.write("  Sources: %s\n" % ev.getSources())
                         output.write("  Positional Info: %s\n" % ev.getPositionalInfo())
+                        output.write("  Negation Status: %s\n" % ev.getNegationStatus())
                     output.write("Mappings:\n")
                     for map in pcm.getMappings():
                         output.write(" Map Score:% s\n" % map.getScore())
@@ -68,13 +35,10 @@ class TestApi:
                             output.write("  Score: %s\n" % mapev.getScore())
                             output.write("  Concept Id: %s\n" % mapev.getConceptId())
                             output.write("  Concept Name: %s\n" % mapev.getConceptName())
-                            output.write("  Preferred Name: %s\n" % mapev.getPreferredName())
-                            output.write("  Matched Words: %s\n" % mapev.getMatchedWords())
                             output.write("  Semantic Types: %s\n" % mapev.getSemanticTypes())
-                            output.write("  is Head?: %s\n" % mapev.isHead())
-                            output.write("  is Overmatch?: %s\n" % mapev.isOvermatch())
                             output.write("  Sources: %s\n" % mapev.getSources())
                             output.write("  Positional Info: %s\n" % mapev.getPositionalInfo())
+                            output.write("  Negation Status: %s\n" % mapev.getNegationStatus())
 
     def read_input(self, filename):
         file_content = open(filename)
@@ -95,8 +59,6 @@ class TestApi:
             if result:
                 print "input text: "
                 print " " + result.getInputText()
-                self.display_aas(result, output_text)
-                self.display_negations(result, output_text)
                 self.display_utterances(result, display_pcmlist=True, output=output_text)
         output_text.close()
 
