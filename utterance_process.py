@@ -4,6 +4,7 @@ Process the utterance output from MetaMap.
 Xuenan Pi
 06/01/2016
 """
+import re
 
 
 class UtteranceProcess(object):
@@ -107,6 +108,21 @@ class UtteranceProcess(object):
         self.prune()
         self.match()
         return self.utterance
+
+    def detect_negative_words(self):
+        """ Detect the word 'no', 'not' and 'negative' in the sentence.
+        Return: add {"Negative word": [(index, word)]} to the end of the utterance"""
+        text = self.utterance[0]["Utterance text"]
+        negative_pattern = r"\s([Nn]o|[Nn]ot|[Nn]egative)[\s\.]"
+        search_result = re.finditer(negative_pattern, text)
+        negative_word_dict = dict()
+        negative_word_dict["Negative word"] = []
+        if search_result:
+            for m in search_result:
+                negative_word_dict["Negative word"] += [(m.start(), m.group().strip().strip("."))]
+        self.utterance.append(negative_word_dict)
+        return self.utterance
+
 
 
 

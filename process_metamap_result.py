@@ -108,7 +108,8 @@ if __name__ == '__main__':
     # clean the mapping result like population group
     # detect the negative terms in the utterance
     # order the terms in the utterance by index
-    for i in result:
-        for j in i:
+    for utterance in result:
+        utterance_result = UtteranceProcess(utterance).detect_negative_words()
+        for j in utterance_result:
             print "print", j
 
