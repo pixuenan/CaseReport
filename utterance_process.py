@@ -26,7 +26,7 @@ class UtteranceProcess(object):
                            "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
                            }
 
-        self.needed_keys = ["Concept Name", "Semantic Types", "Sources"]
+        self.needed_keys = ["Matched Words", "Concept Name", "Semantic Types", "Sources"]
 
     def check_semantic_type(self, semantic_types):
         """Check if the mapping result has semantic types needed."""
