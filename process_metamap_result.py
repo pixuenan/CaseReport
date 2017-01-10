@@ -80,7 +80,7 @@ def time_point_extraction(matched_utterances):
 
     time_need_types = ["[Disease or Syndrome]", "[Neoplastic Process]", "[Sign or Symptom]",
                        "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]",
-                       "[Pharmacologic Substance]"]
+                       "[Pharmacologic Substance]", "[Therapeutic or Preventive Procedure]"]
     age_detected_flag = False
     for idx, utterance in enumerate(matched_utterances):
         if not age_detected_flag:
@@ -110,7 +110,8 @@ if __name__ == '__main__':
     # order the terms in the utterance by index
     for utterance in result:
         # utterance_result = UtteranceProcess(utterance).detect_negative_words()
-        # UtteranceProcess(utterance_result).order_terms()
-        for j in utterance:
-            print "print", j
+        utterance_result = UtteranceProcess(utterance).order_terms()
+        # print utterance_result
+        # for j in utterance_result:
+        #     print "print", j
 

@@ -5,6 +5,7 @@ Xuenan Pi
 06/01/2016
 """
 import re
+from utility import clean_mapping_result, label_mapping_result
 
 
 class UtteranceProcess(object):
@@ -23,7 +24,8 @@ class UtteranceProcess(object):
                            "[diap]": ["[Diagnostic Procedure]", ("MSH", "CHV")],
                            "[lbpr]": ["[Laboratory Procedure]", ("MSH", "CHV")],
                            "[phsu]": ["[Pharmacologic Substance]", ("MSH", "CHV", "RXNORM")],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ("CHV", "MSH")],
+                           "[bpoc]": ["[Body Part, Organ, or Organ Component]", ("CHV", "MSH")]
                            }
 
         self.needed_keys = ["Concept Name", "Semantic Types", "Sources", "Positional Info"]
@@ -131,14 +133,14 @@ class UtteranceProcess(object):
         "Age":, "Gender":,
         "mapping result": [
         "Time Point", ("Concept Name","Semantic types")]}"""
-        result_utterance = self.utterance[0]
+        result_utterance = dict()
+        result_utterance["Utterance text"] = self.utterance[0]["Utterance text"]
         text = self.utterance[0]["Utterance text"]
         print text
+        utterance_start = int(self.utterance[0]["Utterance start index"][1:-1].split(",")[0])
         mapping_result = []
-        index_list = []
-        term_list = []
+        term_index_dict = dict()
         for phrase in self.utterance[1:]:
-            print phrase
             if "mapping" in phrase.keys():
                 mapping = phrase["mapping"]
                 for term in mapping:
@@ -151,19 +153,30 @@ class UtteranceProcess(object):
                             result_utterance["Gender"] = term["Gender"]
                     # concept term
                     else:
-                        print "match word: ", term["Matched Words"]
-                        index = text.upper().index(term["Matched Words"][1:-1].split(",")[0].upper())
-                        index_list += [index]
-                        term_list += [(term["Concept Name"], term["Semantic Types"])]
+                        # avoid including repetitive mapping result
+                        if not term_index_dict.values() or \
+                                    term["Concept Name"] not in zip(*term_index_dict.values())[0]:
+                            term_start = int(term["Positional Info"][2:-2].split(",")[0])
+                            index = term_start - utterance_start
+                            term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
             # time point
             elif "Time Point" in phrase.keys():
                 for time in phrase["Time Point"]:
                     index = text.index(time)
-                    index_list += [index]
-                    term_list += [time]
+                    term_index_dict[index] = (time, "[Time Point]")
 
-        print 'i: ', index_list
-        print 't: ', term_list
+        if term_index_dict:
+            for key in sorted(term_index_dict.keys()):
+                # [[index, (Concept time, Semantic types/Time Point)]]
+                mapping_result += [[key, term_index_dict[key]]]
+
+            # clean the mapping result
+            mapping_result = clean_mapping_result(mapping_result)
+        # label time point to the terms
+        if mapping_result:
+            # the following function will be replaced by a machine learning function
+            label_mapping_result(mapping_result, text)
+
         result_utterance["mapping_result"] = mapping_result
         return result_utterance
 
