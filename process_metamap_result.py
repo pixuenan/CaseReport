@@ -102,15 +102,16 @@ if __name__ == '__main__':
     matched_utterance = []
     for utterance in processed_case:
         if "Utterance text" in utterance[0][0][0].keys():
-            utterance_result = UtteranceProcess(utterance).main()
+            utterance_result = UtteranceProcess(utterance).match()
             matched_utterance += [utterance_result]
-    result = time_point_extraction(matched_utterance)
+            # print utterance_result
+    # result = time_point_extraction(matched_utterance)
     # clean the mapping result like population group
     # detect the negative terms in the utterance
     # order the terms in the utterance by index
-    for utterance in result:
+    # for utterance in result:
         # utterance_result = UtteranceProcess(utterance).detect_negative_words()
-        utterance_result = UtteranceProcess(utterance).order_terms()
+        # utterance_result = UtteranceProcess(utterance).order_terms()
         # print utterance_result
         # for j in utterance_result:
         #     print "print", j
