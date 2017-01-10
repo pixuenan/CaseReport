@@ -89,23 +89,7 @@ class UtteranceProcess(object):
                 phrase_dict["mapping"] = self.match_semantic_types(phrase)
                 if phrase_dict["mapping"]:
                     utterance_unit_list += [phrase_dict]
-        print utterance_unit_list
         return utterance_unit_list
-
-    def detect_negative_words(self):
-        """ Detect the word 'no', 'not' and 'negative' in the sentence.
-        Return: add {"Negative word": [(index, word)]} to the end of the utterance"""
-        text = self.utterance[0]["Utterance text"]
-        negative_pattern = r"\s([Nn]o|[Nn]ot|[Nn]egative)[\s\.]"
-        search_result = re.finditer(negative_pattern, text)
-        negative_word_dict = dict()
-        negative_word_dict["Negative word"] = []
-        if search_result:
-            for m in search_result:
-                negative_word_dict["Negative word"] += [(m.start(), m.group().strip().strip("."))]
-        if negative_word_dict["Negative word"]:
-            self.utterance.append(negative_word_dict)
-        return self.utterance
 
     def order_terms(self):
         """ Order the mapping terms by their location in the sentence.
