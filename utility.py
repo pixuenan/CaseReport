@@ -46,7 +46,9 @@ def label_mapping_result(mapping, text):
     semantic_types_list = zip(*zip(*mapping)[1])[1]
     if "[Time Point]" in semantic_types_list:
         time_index = semantic_types_list.index("[Time Point]")
-        for term in mapping:
+        term_idx = 0
+        while term_idx < len(mapping):
+            term = mapping[term_idx]
             if term[1][1] != "[Time Point]":
                 start = min(term[0], index_list[time_index])
                 end = max(term[0], index_list[time_index])
@@ -58,6 +60,7 @@ def label_mapping_result(mapping, text):
                         term[0] = ("Current", term_list[time_index])
                 else:
                     term[0] = ("Current")
+                term_idx += 1
             else:
                 mapping.remove(term)
     else:
