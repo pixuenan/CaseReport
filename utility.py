@@ -30,9 +30,7 @@ def clean_mapping_result(mapping):
 
     if mapping_result:
         semantic_types_list = zip(*zip(*mapping_result)[1])[1]
-        if set(semantic_types_list) == {"[Time Point]", "[Body Part, Organ, or Organ Component]"} \
-                or set(semantic_types_list) == {"[Body Part, Organ, or Organ Component]"} \
-                or set(semantic_types_list) == {"[Time Point]"}:
+        if set(semantic_types_list) == {"[Time Point]"}:
             mapping_result = []
     return mapping_result
 
@@ -43,14 +41,10 @@ def past_regex(phrase):
 
 
 def label_mapping_result(mapping, text):
-    print "#", mapping
     index_list = zip(*mapping)[0]
     term_list = zip(*zip(*mapping)[1])[0]
     semantic_types_list = zip(*zip(*mapping)[1])[1]
-    print term_list
-    print semantic_types_list
     if "[Time Point]" in semantic_types_list:
-        print "found"
         time_index = semantic_types_list.index("[Time Point]")
         for term in mapping:
             if term[1][1] != "[Time Point]":
@@ -69,6 +63,5 @@ def label_mapping_result(mapping, text):
     else:
         for term in mapping:
             term[0] = ("Current")
-    print "##", mapping
     return mapping
 

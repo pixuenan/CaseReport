@@ -24,8 +24,7 @@ class UtteranceProcess(object):
                            "[diap]": ["[Diagnostic Procedure]", ["MSH", "CHV"]],
                            "[lbpr]": ["[Laboratory Procedure]", ["MSH", "CHV"]],
                            "[phsu]": ["[Pharmacologic Substance]", ["MSH", "CHV", "RXNORM"]],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"]],
-                           "[bpoc]": ["[Body Part, Organ, or Organ Component]", ["CHV", "MSH"]]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"]]
                            }
 
         self.needed_keys = ["Concept Name", "Semantic Types", "Sources", "Positional Info"]
@@ -100,7 +99,6 @@ class UtteranceProcess(object):
         result_utterance = dict()
         result_utterance["Utterance text"] = self.utterance[0]["Utterance text"]
         text = self.utterance[0]["Utterance text"]
-        print text
         utterance_start = int(self.utterance[0]["Utterance start index"][1:-1].split(",")[0])
         mapping_result = []
         term_index_dict = dict()

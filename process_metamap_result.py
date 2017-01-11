@@ -91,7 +91,7 @@ def time_point_extraction(matched_utterances):
                 matched_utterances[idx] = detect_gender(utterance)
                 age_detected_flag = True
                 continue
-        # detect time point only when in the text there is disease or phenotype terms
+
         semantic_types = collect_needed_semantic_types(utterance, time_need_types)
         if semantic_types:
             matched_utterances[idx] = detect_time_point(utterance)
