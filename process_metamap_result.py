@@ -5,7 +5,7 @@ Xuenan Pi
 23/12/2016
 """
 from utterance_process import UtteranceProcess
-from BSON_report import BSON_report
+from BSON_report import BSONReport
 from time_point import detect_age, detect_time_point, detect_gender
 from utility import collect_needed_semantic_types
 
@@ -114,12 +114,8 @@ if __name__ == '__main__':
     for utterance in result:
         processed_result += [UtteranceProcess(utterance).order_terms()]
 
-    u_report = BSON_report()
-    u_report.generate_report(processed_result)
-    report = u_report.report
-    # for key, item in report.items():
-    #     print key, item
+    u_report = BSONReport()
+    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
 
-        # for j in utterance_result:
-        #     print "print", j
+
 
