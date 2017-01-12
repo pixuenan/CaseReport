@@ -77,6 +77,7 @@ class UtteranceProcess(object):
         utterance_dict = dict()
         utterance_dict["Utterance text"] = self.utterance[0][0][0]["Utterance text"]
         utterance_dict["Utterance start index"] = self.utterance[0][0][0]["Position"]
+        utterance_dict["Utterance syntax unit"] = self.get_lexical_type()
         utterance_unit_list += [utterance_dict]
         for phrase in self.utterance:
             # check if the phrase has mapping result
@@ -84,7 +85,6 @@ class UtteranceProcess(object):
                 phrase_dict = dict()
                 # the first element of the phrase list is the text of the phrase
                 phrase_dict["text"] = phrase[0][0]["text"]
-                # print phrase
                 phrase_dict["mapping"] = self.match_semantic_types(phrase)
                 if phrase_dict["mapping"]:
                     utterance_unit_list += [phrase_dict]
@@ -142,5 +142,20 @@ class UtteranceProcess(object):
         result_utterance["mapping_result"] = mapping_result
         return result_utterance
 
+    def get_lexical_type(self):
+        """Return a list of (word, lexical type) of the utterance."""
+        unit_list = []
+        for phrase in self.utterance:
+            if "Syntax Unit" in phrase[0][0].keys():
+                syntax_string = phrase[0][0]["Syntax Unit"]
+                # syntax_string example
+                # +++ ([An]),tag(det),tokens([an])]),    shapes([
+                # +++ ([,]),tokens([])])]
+                for unit_info in syntax_string.split("inputmatch")[1:]:
+                    # DO NOT use "," to split the string since comma could also be one unit
+                    unit = unit_info.split("),")
+                    # unit = ["([input_text]", "tag(lexical category", "tokens([])", "syntax cat(["]
+                    unit_list += [(unit[0][2:-1], unit[1].startswith("tag(") and unit[1][4:] or None)]
+        return unit_list
 
 

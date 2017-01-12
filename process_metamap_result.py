@@ -107,15 +107,19 @@ if __name__ == '__main__':
             matched_utterance += [utterance_result]
             # print utterance_result
     result = time_point_extraction(matched_utterance)
+    # for i in result:
+    #     print i
     # clean the mapping result like population group
     # detect the negative terms in the utterance
     # order the terms in the utterance by index
     processed_result = []
     for utterance in result:
         processed_result += [UtteranceProcess(utterance).order_terms()]
-
-    u_report = BSONReport()
-    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
+    #
+    # u_report = BSONReport()
+    # u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
+    # for utt in processed_result:
+    #     print utt
 
 
 
