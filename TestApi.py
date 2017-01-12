@@ -18,16 +18,7 @@ class TestApi:
                 for pcm in utterance.getPCMList():
                     output.write("Phrase:\n")
                     output.write(" text: %s\n" % pcm.getPhrase().getPhraseText())
-                    output.write("Candidates:\n")
-                    for ev in pcm.getCandidates():
-                        output.write(" Candidate:\n")
-                        output.write("  Score: %s\n" % ev.getScore())
-                        output.write("  Concept Id: %s\n" % ev.getConceptId())
-                        output.write("  Concept Name: %s\n" % ev.getConceptName())
-                        output.write("  Semantic Types: %s\n" % ev.getSemanticTypes())
-                        output.write("  Sources: %s\n" % ev.getSources())
-                        output.write("  Positional Info: %s\n" % ev.getPositionalInfo())
-                        output.write("  Negation Status: %s\n" % ev.getNegationStatus())
+                    output.write(" Syntax Unit: %s\n" % pcm.getPhrase().getMincoManAsString())
                     output.write("Mappings:\n")
                     for map in pcm.getMappings():
                         output.write(" Map Score:% s\n" % map.getScore())
