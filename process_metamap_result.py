@@ -6,6 +6,7 @@ Xuenan Pi
 """
 from utterance_process import UtteranceProcess
 from BSON_report import BSONReport
+from label_terms import LabelTerms
 from time_point import detect_age, detect_time_point, detect_gender
 from utility import collect_needed_semantic_types
 
@@ -114,10 +115,11 @@ if __name__ == '__main__':
     # order the terms in the utterance by index
     processed_result = []
     for utterance in result:
-        processed_result += [UtteranceProcess(utterance).order_terms()]
+        # processed_result += [UtteranceProcess(utterance).order_terms()]
+        processed_result += [LabelTerms(utterance).main()]
     #
-    # u_report = BSONReport()
-    # u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
+    u_report = BSONReport()
+    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
     # for utt in processed_result:
     #     print utt
 

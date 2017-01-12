@@ -25,46 +25,8 @@ def collect_needed_semantic_types(utterance, need_type):
     return semantic_types
 
 
-def clean_mapping_result(mapping):
-    mapping_result = [term for term in mapping if term[1][0] != "interventional procedure"]
-
-    if mapping_result:
-        semantic_types_list = zip(*zip(*mapping_result)[1])[1]
-        if set(semantic_types_list) == {"[Time Point]"}:
-            mapping_result = []
-    return mapping_result
-
-
 def past_regex(phrase):
     past_pattern = re.compile(r"([\s-]old|history|\sago|[Pp]ast)")
     return past_pattern.search(phrase) and True or False
 
-
-def label_mapping_result(mapping, text):
-    index_list = zip(*mapping)[0]
-    term_list = zip(*zip(*mapping)[1])[0]
-    semantic_types_list = zip(*zip(*mapping)[1])[1]
-    if "[Time Point]" in semantic_types_list:
-        time_index = semantic_types_list.index("[Time Point]")
-        term_idx = 0
-        while term_idx < len(mapping):
-            term = mapping[term_idx]
-            if term[1][1] != "[Time Point]":
-                start = min(term[0], index_list[time_index])
-                end = max(term[0], index_list[time_index])
-                related = "," not in text[start:end]
-                if related:
-                    if past_regex(term_list[time_index]):
-                        term[0] = ("Past", term_list[time_index])
-                    else:
-                        term[0] = ("Current", term_list[time_index])
-                else:
-                    term[0] = ("Current")
-                term_idx += 1
-            else:
-                mapping.remove(term)
-    else:
-        for term in mapping:
-            term[0] = ("Current")
-    return mapping
 

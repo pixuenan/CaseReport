@@ -47,7 +47,7 @@ class BSONReport(object):
             self.report["Age"] = utterance["Age"]
         if "Gender" in utterance.keys():
             self.report["Gender"] = utterance["Gender"]
-        for term in utterance["mapping_result"]:
+        for term in utterance["mapping result"]:
             if term[0] == "Current":
                 self.report["Terms"]["Current"] += [term[1]]
             else:
