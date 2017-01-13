@@ -25,8 +25,5 @@ def collect_needed_semantic_types(utterance, need_type):
     return semantic_types
 
 
-def past_regex(phrase):
-    past_pattern = re.compile(r"([\s-]old|history|\sago|[Pp]ast)")
-    return past_pattern.search(phrase) and True or False
 
 

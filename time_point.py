@@ -30,7 +30,7 @@ def detect_time_string(text):
     """
     # past three years, three years ago, 4 days later, after 7 weeks
     time_pattern = re.compile(
-        r"([pP]ast|[Aa]fter)?((\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old)).+?(later|ago)?")
+        r"([pP]ast|[Aa]fter)?((\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old)).+?(later|ago|prior)?")
     time_string_list = []
     while time_pattern.search(text):
         time_result = time_pattern.search(text)
@@ -102,6 +102,11 @@ def detect_gender(utterance):
                         phrase["mapping"][0]["Gender"] = mapping["Concept Name"]
                     phrase["mapping"].remove(mapping)
     return utterance
+
+
+def past_regex(phrase):
+    past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|[Pp]ast)")
+    return past_pattern.search(phrase) and True or False
 
 
 

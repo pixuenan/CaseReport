@@ -5,7 +5,7 @@ Xuenan Pi
 11/01/2016
 """
 
-from utility import past_regex
+from time_point import past_regex
 
 
 class LabelTerms(object):
@@ -26,14 +26,14 @@ class LabelTerms(object):
 
         self.wrong_mapping_list = [("procedure", "interventional procedure")]
 
-    def detect_age_and_gender(self, term):
+    def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
         if "Gender" not in term.keys():
             self.utterance_dict["Gender"] = None
         else:
             self.utterance_dict["Gender"] = term["Gender"]
 
-    def detect_concept(self, term):
+    def get_concept(self, term):
         # avoid including repetitive mapping result
         if not self.term_index_dict.values() or \
                         term["Concept Name"] not in zip(*self.term_index_dict.values())[0]:
@@ -45,7 +45,7 @@ class LabelTerms(object):
             if not self.wrong_mapping_test(term["Concept Name"], term_word):
                 self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
 
-    def detect_time_point(self, phrase):
+    def get_time_point(self, phrase):
         for time in phrase["Time Point"]:
             index = self.text.index(time)
             self.term_index_dict[index] = (time, "[Time Point]")
@@ -66,13 +66,13 @@ class LabelTerms(object):
                 for term in mapping:
                     # age and gender
                     if "Age" in term.keys():
-                        self.detect_age_and_gender(term)
+                        self.get_age_and_gender(term)
                     # concept term
                     else:
-                        self.detect_concept(term)
+                        self.get_concept(term)
             # time point
             elif "Time Point" in phrase.keys():
-                self.detect_time_point(phrase)
+                self.get_time_point(phrase)
 
         if self.term_index_dict:
             for key in sorted(self.term_index_dict.keys()):
