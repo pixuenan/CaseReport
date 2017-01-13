@@ -57,6 +57,12 @@ def detect_history_string(text):
     return history_string_list
 
 
+def detect_year_string(text):
+    """Return a list of found year string with the text, am empty list will be returned if no finding"""
+    year_pattern = r"\s(20|19)([0-9]{2})[\s|\,|\.]"
+    return ["".join(i) for i in re.findall(year_pattern, text)]
+
+
 def detect_age(utterance):
     """ Detect age information in the phrase, if detected, add dictionary {"Age": age} to the phrase mapping result
     """
