@@ -5,6 +5,7 @@ Xuenan Pi
 11/01/2016
 """
 
+import ast
 from time_point import past_regex
 
 
@@ -24,7 +25,7 @@ class LabelTerms(object):
 
         self.term_index_dict = dict()
 
-        self.wrong_mapping_list = [("procedure", "interventional procedure")]
+        self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics")]
 
     def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
@@ -37,12 +38,13 @@ class LabelTerms(object):
         # avoid including repetitive mapping result
         if not self.term_index_dict.values() or \
                         term["Concept Name"] not in zip(*self.term_index_dict.values())[0]:
-            position_list = term["Positional Info"][2:-2].split(",")
-            term_start = int(position_list[0].strip())
-            term_length = int(position_list[1].strip())
+            position_list = ast.literal_eval(term["Positional Info"])[0]
+            term_start = position_list[0]
+            term_length = position_list[1]
             index = term_start - self.utterance_start
             term_word = self.text[index:index+term_length]
-            if not self.wrong_mapping_test(term["Concept Name"], term_word):
+            if not self.wrong_mapping_test(term["Concept Name"], term_word) and \
+                            "[Population Group]" != term["Semantic Types"]:
                 self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
 
     def get_time_point(self, phrase):
@@ -54,6 +56,7 @@ class LabelTerms(object):
         return (term_word.lower(), term_concept.lower()) in self.wrong_mapping_list
 
     def clean_mapping_result(self):
+        """Empty the utterance mapping result if there is only time point information there."""
         if self.mapping_result:
             semantic_types_list = zip(*zip(*self.mapping_result)[1])[1]
             if set(semantic_types_list) == {"[Time Point]"}:
@@ -91,16 +94,10 @@ class LabelTerms(object):
             while term_idx < len(self.mapping_result):
                 term = self.mapping_result[term_idx]
                 if term[1][1] != "[Time Point]":
-                    start = min(term[0], index_list[time_index])
-                    end = max(term[0], index_list[time_index])
-                    related = "," not in self.text[start:end]
-                    if related:
-                        if past_regex(term_list[time_index]):
-                            term[0] = ("Past", term_list[time_index])
-                        else:
-                            term[0] = ("Current", term_list[time_index])
+                    if past_regex(term_list[time_index]):
+                        term[0] = ("Past", term_list[time_index])
                     else:
-                        term[0] = ("Current")
+                        term[0] = ("Current", term_list[time_index])
                     term_idx += 1
                 else:
                     self.mapping_result.remove(term)

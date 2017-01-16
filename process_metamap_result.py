@@ -4,6 +4,7 @@ Generate result report from Metamap parsed terms
 Xuenan Pi
 23/12/2016
 """
+import json
 from utterance_process import UtteranceProcess
 from BSON_report import BSONReport
 from label_terms import LabelTerms
@@ -13,7 +14,11 @@ from utility import collect_needed_semantic_types
 
 def read_file(input_file):
     file_content = open(input_file)
-    result_list = file_content.readlines()
+    if input_file.endswith(".json"):
+        data = json.loads(file_content.read())
+        result_list = data["MetaMap result"]
+    else:
+        result_list = file_content.readlines()
     file_content.close()
     return clean_none_head(result_list)
 
@@ -88,19 +93,20 @@ def time_point_extraction(matched_utterances):
         if not age_detected_flag:
             semantic_types = collect_needed_semantic_types(utterance, age_need_types)
             if semantic_types:
+                # detect age
                 matched_utterances[idx] = detect_age(utterance)
                 # detect gender
                 matched_utterances[idx] = detect_gender(utterance)
                 age_detected_flag = True
-                continue
 
         semantic_types = collect_needed_semantic_types(utterance, time_need_types)
         if semantic_types:
-            matched_utterances[idx] = detect_time_point(utterance)
+            matched_utterances[idx] = detect_time_point(utterance, age_exist=age_detected_flag)
     return matched_utterances
 
 if __name__ == '__main__':
-    processed_case = process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result.txt")
+    processed_case = process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\19159cac990edfd0eac2535b42141417JMCR.MetaMap.json")
+    # processed_case = process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result.txt")
     matched_utterance = []
     for utterance in processed_case:
         if "Utterance text" in utterance[0][0][0].keys():
@@ -110,16 +116,14 @@ if __name__ == '__main__':
     result = time_point_extraction(matched_utterance)
     # for i in result:
     #     print i
-    # clean the mapping result like population group
-    # detect the negative terms in the utterance
-    # order the terms in the utterance by index
     processed_result = []
     for utterance in result:
         # processed_result += [UtteranceProcess(utterance).order_terms()]
         processed_result += [LabelTerms(utterance).main()]
     #
     u_report = BSONReport()
-    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result_processed.json")
+    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\19159cac990edfd0eac2535b42141417JMCR.MetaMap.processed.json")
+    # u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2.processed.json")
     # for utt in processed_result:
     #     print utt
 

@@ -22,7 +22,8 @@ class UtteranceProcess(object):
                            "[diap]": ["[Diagnostic Procedure]", ["MSH", "CHV"]],
                            "[lbpr]": ["[Laboratory Procedure]", ["MSH", "CHV"]],
                            "[phsu]": ["[Pharmacologic Substance]", ["MSH", "CHV", "RXNORM"]],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"]]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"]],
+                           "[famg]": ["[Family Group]", ["CHV"]]
                            }
 
         self.needed_keys = ["Concept Name", "Semantic Types", "Sources", "Positional Info"]

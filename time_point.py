@@ -76,14 +76,15 @@ def detect_age(utterance):
     return utterance
 
 
-def detect_time_point(utterance):
+def detect_time_point(utterance, age_exist=False):
     """ Detect time point word in the sentence."""
-    # ori_text = utterance[0]["Utterance text"]
     text = utterance[0]["Utterance text"]
     time_point_dict = dict()
     time_point_dict["Time Point"] = []
 
-    time_point_dict["Time Point"] += detect_age_string(text)
+    # exclude the age string the same as the "Age" of the patient
+    if not age_exist:
+        time_point_dict["Time Point"] += detect_age_string(text)
     time_point_dict["Time Point"] += detect_history_string(text)
     time_point_dict["Time Point"] += detect_year_string(text)
     regex_index_result = index_in_the_list(time_point_dict["Time Point"], text)
@@ -100,14 +101,21 @@ def detect_time_point(utterance):
 
 
 def detect_gender(utterance):
-    genders = ["Woman", "Man", "Female", "Male", "Boy", "Girl"]
+    genders = {"Woman|Women|Female|Girl": "Female", "Man|Men|Male|Boy": "Male"}
     for phrase in utterance[1:]:
         if "Age" in phrase["mapping"][0].keys():
-            for mapping in phrase["mapping"][1:]:
+            idx = 0
+            while idx < len(phrase["mapping"])-1:
+                mapping = phrase["mapping"][1:][idx]
                 if mapping["Semantic Types"] == "[Population Group]":
-                    if mapping["Concept Name"] in genders:
-                        phrase["mapping"][0]["Gender"] = mapping["Concept Name"]
+                    keys = genders.keys()
+                    if mapping["Concept Name"] in keys[0]:
+                        phrase["mapping"][0]["Gender"] = genders[keys[0]]
+                    elif mapping["Concept Name"] in keys[1]:
+                        phrase["mapping"][0]["Gender"] = genders[keys[1]]
                     phrase["mapping"].remove(mapping)
+                else:
+                    idx += 1
     return utterance
 
 
@@ -115,6 +123,10 @@ def past_regex(text):
     past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|\sbefore|\searlier\sprior|[Pp]ast)")
     year_pattern = re.compile(r"(20|19)([0-9]{2})")
     return past_pattern.search(text) or year_pattern.search(text) and True or False
+
+if __name__=="__main__":
+    s = "A 44-year-old white man with a past medical history of viral myocarditis, reduced left ventricular function, and continuous beta-blocker therapy, collapsed on the street."
+    print detect_history_string(s)
 
 
 

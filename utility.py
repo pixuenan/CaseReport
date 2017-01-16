@@ -19,6 +19,8 @@ def collect_needed_semantic_types(utterance, need_type):
     semantic_types = []
     for phrase in utterance[1:]:
         mapping_list = phrase["mapping"]
+        if "Age" in mapping_list[0].keys():
+            mapping_list = mapping_list[1:]
         for mapping in mapping_list:
             if mapping["Semantic Types"] in need_type:
                 semantic_types += [mapping["Semantic Types"]]

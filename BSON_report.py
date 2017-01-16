@@ -6,6 +6,7 @@ Xuenan Pi
 """
 
 import json
+import collections
 
 
 class BSONReport(object):
@@ -18,16 +19,19 @@ class BSONReport(object):
         self.report["Terms"]["Current"] = None
 
     def delete_consecutive_repetitive(self):
-        """Only delete the consecutive repetitive terms in the current part
+        """Only delete the consecutive repetitive terms in the report
         Input: list of [mapped term, semantic types]"""
-        idx = 0
-        term_list = self.report["Terms"]["Current"]
-        while idx < len(term_list) - 1:
-            term = term_list[idx]
-            if term[0] == term_list[idx + 1][0] and term[1] == term_list[idx + 1][1]:
-                term_list.remove(term)
-            else:
-                idx += 1
+        for semantic_type in self.report["Terms"]["Current"].keys():
+            idx = 0
+            concept_list = self.report["Terms"]["Current"][semantic_type]
+            while idx < len(concept_list):
+                concept = concept_list[idx]
+                count_dict = collections.Counter(concept_list)
+                if count_dict[concept] > 1:
+                    for repeat_time in range(count_dict[concept]-1):
+                        concept_list.remove(concept)
+                else:
+                    idx += 1
 
     def group_by_semantic_types(self, key):
         """Group the mapped terms by semantic types"""
@@ -53,8 +57,6 @@ class BSONReport(object):
             else:
                 self.report["Terms"]["Past"] += [tuple([term[0][1]] + list(term[1]))]
 
-        self.delete_consecutive_repetitive()
-
     def generate_report(self, processed_case, output_file_name):
         output_file = open(output_file_name, "w+")
         self.report["Terms"]["Past"] = []
@@ -63,5 +65,6 @@ class BSONReport(object):
             self.process_utterance(utterance)
         self.group_by_semantic_types("Current")
         self.group_by_semantic_types("Past")
+        self.delete_consecutive_repetitive()
         output_file.write(json.dumps(self.report, indent=4))
         output_file.close()
