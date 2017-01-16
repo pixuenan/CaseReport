@@ -19,23 +19,7 @@ package org.factpub.factify;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.factpub.factify.knowledge_model.C_Facts;
-import org.factpub.factify.knowledge_model.S_Facts;
-import org.factpub.factify.nlp.Sequence;
-import org.factpub.factify.nlp.StanfordNLPLight;
-import org.factpub.factify.pattern.Acronym;
-import org.factpub.factify.pattern.NGrams;
-import org.factpub.factify.pattern.RootMatcher;
 import org.factpub.factify.pdf.converter.PDFConverter;
 import org.factpub.factify.utility.Debug;
 import org.factpub.factify.utility.Debug.DEBUG_CONFIG;
@@ -46,37 +30,11 @@ import org.json.simple.JSONObject;
 import at.knowcenter.code.pdf.structure.PDF;
 import at.knowcenter.code.pdf.structure.Paragraph;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 /**
  * This is the main class for convert pdf to text from Journal of Medical reports
  */
@@ -92,24 +50,45 @@ public class Pdf2TextJMCR {
 		
 		/* sample pdf file*/
 		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport_JMCR\\";
-		String pdf_file = "art%3A10.1186%2Fs13256-016-1168-0.pdf";
+//		String pdf_file = "art%3A10.1186%2Fs13256-016-1168-0.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1160-8.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1169-z.pdf";
 
 		
-		String[] parameters = new String[6];
-		parameters[0] = input_folder + pdf_file;
-		parameters[1] = input_folder;
-		parameters[2] = input_folder;
-		parameters[3] = "";
+//		String[] parameters = new String[4];
+//		parameters[0] = input_folder + pdf_file;
+//		parameters[1] = input_folder;
+//		parameters[2] = input_folder;
+//		parameters[3] = "";
+//		
+//		System.out.println(parameters[0]);
+//		System.out.println(parameters[1]);
+//		System.out.println(parameters[2]);
+//		System.out.println(parameters[3]);
 		
-		System.out.println(parameters[0]);
-		System.out.println(parameters[1]);
-		System.out.println(parameters[2]);
-		System.out.println(parameters[3]);
+		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport_JMCR\\");
+		File[] listOfFiles = folder.listFiles();
+
+		    for (int i = 0; i < listOfFiles.length; i++) {
+		      if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".pdf")) {
+		        System.out.println("File " + listOfFiles[i].getName());
+		        String pdf_file = listOfFiles[i].getName();
+		        String[] parameters = new String[4];
+		        parameters[0] = input_folder + pdf_file;
+		        parameters[1] = input_folder;
+		        parameters[2] = input_folder;
+		        parameters[3] = "";
 		
-		int error = extractText(parameters);
-		Debug.println("Finished with errorcode " + error, DEBUG_CONFIG.debug_error);
+		        int error = extractText(parameters);
+		        Debug.println("Finished with errorcode " + error, DEBUG_CONFIG.debug_error);
+		
+		      } else if (listOfFiles[i].isDirectory()) {
+		        System.out.println("Directory " + listOfFiles[i].getName());
+		      }
+		    }
+		
+//		int error = extractText(parameters);
+//		Debug.println("Finished with errorcode " + error, DEBUG_CONFIG.debug_error);
 	}
 	
 	/**
@@ -125,7 +104,6 @@ public class Pdf2TextJMCR {
 	 * 1: Success<br>
 	 * 2: PDF Converter failed<br>
 	 * 3: PDF Converter succeeded, but no body text (or section heading)<br>
-	 * 4: Facts exist<br>
 	 * @throws IOException 
 	 */
 	
@@ -211,9 +189,9 @@ public class Pdf2TextJMCR {
 			Writer out; 
 			boolean append = false;
 			String facts_name = Utility.MD5(path);
-			String fact_file = output_dir + facts_name + "MJCR.txt";
+			String fact_file = output_dir + facts_name + "JMCR.json";
 			out = new BufferedWriter(new OutputStreamWriter(
-					  new FileOutputStream(new File(fact_file), append), "UTF-8"));
+					  new FileOutputStream(new File(fact_file), append), "US-ASCII"));
 			
 
 			reportTxt.put("Title", pdf.candidateTitle.get(2).text);
@@ -254,7 +232,6 @@ public class Pdf2TextJMCR {
 
 		
 		/*
-		 * End of runFactify
 		 * If everything is okay, this returns 1.
 		 */
 		
