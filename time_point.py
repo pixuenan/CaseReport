@@ -30,12 +30,12 @@ def detect_time_string(text):
     """
     # past three years, three years ago, 4 days later, after 7 weeks
     time_pattern = re.compile(
-        r"([pP]ast|[Aa]fter)?((\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old)).+?(later|ago|prior)?")
+    r'([pP]ast|[Aa]fter)?((\s|^)([^\s]+?)(\s|-)(year|month|week|day)(s?)(?!-|old)).+?(later|ago|prior|before|earlier)?')
     time_string_list = []
     while time_pattern.search(text):
         time_result = time_pattern.search(text)
-        need_list = list(time_result.groups(""))
-        time = " ".join([need_list[0], need_list[1], need_list[-1]])
+        need_list = time_result.groups("")
+        time = " ".join([need_list[0].strip(), need_list[1].strip(), need_list[-1].strip()])
         time_string_list += [time.strip()]
         text = text[time_result.end():]
     return time_string_list
@@ -45,13 +45,13 @@ def detect_history_string(text):
     """ Detect history information in the phrase.
      Result: list of detected history string.
     """
-    # 3-year history, past history, history of
-    history_pattern = re.compile(r"((\s|^)([^\s]+?)(\s|-)(year)s?)?\s(history)")
+    # 3-year history, past history, history of, family history
+    history_pattern = re.compile(r"((\s|^)([^\s]+?)(\s|-)(year)s?)?((\s|^)[fF]amily)?\s(history)")
     history_string_list = []
     while history_pattern.search(text):
         history_result = history_pattern.search(text)
-        need_list = list(history_result.groups(""))
-        history = " ".join([need_list[0], need_list[-1]])
+        need_list = history_result.groups("")
+        history = " ".join([need_list[i].strip() for i in [0, -3, -1] if need_list[i]])
         history_string_list += [history.strip()]
         text = text[history_result.end():]
     return history_string_list
@@ -78,19 +78,20 @@ def detect_age(utterance):
 
 def detect_time_point(utterance):
     """ Detect time point word in the sentence."""
-    ori_text = utterance[0]["Utterance text"]
+    # ori_text = utterance[0]["Utterance text"]
+    text = utterance[0]["Utterance text"]
     time_point_dict = dict()
     time_point_dict["Time Point"] = []
-    text_for_age_detec = text_for_history_detec = text_for_time_detec = ori_text
 
-    time_point_dict["Time Point"] += detect_age_string(text_for_age_detec)
-    time_point_dict["Time Point"] += detect_history_string(text_for_history_detec)
-    regex_index_result = index_in_the_list(time_point_dict["Time Point"], ori_text)
+    time_point_dict["Time Point"] += detect_age_string(text)
+    time_point_dict["Time Point"] += detect_history_string(text)
+    time_point_dict["Time Point"] += detect_year_string(text)
+    regex_index_result = index_in_the_list(time_point_dict["Time Point"], text)
 
     # exclude the time point information for medicine, leave the professional part to doctor
     if not collect_needed_semantic_types(utterance, ["[Pharmacologic Substance]"]):
-        for time_string in detect_time_string(text_for_time_detec):
-            if ori_text.index(time_string) not in regex_index_result:
+        for time_string in detect_time_string(text):
+            if text.index(time_string) not in regex_index_result:
                 time_point_dict["Time Point"] += [time_string]
 
     if time_point_dict["Time Point"]:
@@ -110,9 +111,10 @@ def detect_gender(utterance):
     return utterance
 
 
-def past_regex(phrase):
-    past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|[Pp]ast)")
-    return past_pattern.search(phrase) and True or False
+def past_regex(text):
+    past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|\sbefore|\searlier\sprior|[Pp]ast)")
+    year_pattern = re.compile(r"(20|19)([0-9]{2})")
+    return past_pattern.search(text) or year_pattern.search(text) and True or False
 
 
 
