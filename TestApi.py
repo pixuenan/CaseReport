@@ -1,6 +1,7 @@
 """ complete example of using MetaMap api """
 import sys
 import string
+import json
 from se.sics.prologbeans import PrologSession
 from gov.nih.nlm.nls.metamap import MetaMapApi, MetaMapApiImpl, Result
 
@@ -8,49 +9,56 @@ from gov.nih.nlm.nls.metamap import MetaMapApi, MetaMapApiImpl, Result
 class TestApi:
     def __init__(self):
         self.api = MetaMapApiImpl()
+        self.result = dict()
+        self.result_text = []
 
-    def display_utterances(self, result, display_pcmlist=False, output=sys.stdout):
+    def display_utterances(self, result, display_pcmlist=False):
         for utterance in result.getUtteranceList():
-            output.write("Utterance:\n")
-            output.write(" Utterance text: %s\n" % utterance.getString())
-            output.write(" Position: %s\n" % utterance.getPosition())
+            self.result_text += ["Utterance:\n"]
+            self.result_text += [" Utterance text: %s\n" % utterance.getString()]
+            self.result_text += [" Position: %s\n" % utterance.getPosition()]
             if display_pcmlist:
                 for pcm in utterance.getPCMList():
-                    output.write("Phrase:\n")
-                    output.write(" text: %s\n" % pcm.getPhrase().getPhraseText())
-                    output.write(" Syntax Unit: %s\n" % pcm.getPhrase().getMincoManAsString())
-                    output.write("Mappings:\n")
+                    self.result_text += ["Phrase:\n"]
+                    self.result_text += [" text: %s\n" % pcm.getPhrase().getPhraseText()]
+                    self.result_text += [" Syntax Unit: %s\n" % pcm.getPhrase().getMincoManAsString()]
+                    self.result_text += ["Mappings:\n"]
                     for map in pcm.getMappings():
-                        output.write(" Map Score:% s\n" % map.getScore())
+                        self.result_text += [" Map Score:% s\n" % map.getScore()]
                         for mapev in map.getEvList():
-                            output.write("  Score: %s\n" % mapev.getScore())
-                            output.write("  Concept Id: %s\n" % mapev.getConceptId())
-                            output.write("  Concept Name: %s\n" % mapev.getConceptName())
-                            output.write("  Semantic Types: %s\n" % mapev.getSemanticTypes())
-                            output.write("  Sources: %s\n" % mapev.getSources())
-                            output.write("  Positional Info: %s\n" % mapev.getPositionalInfo())
-                            output.write("  Negation Status: %s\n" % mapev.getNegationStatus())
+                            self.result_text += ["  Score: %s\n" % mapev.getScore()]
+                            self.result_text += ["  Concept Id: %s\n" % mapev.getConceptId()]
+                            self.result_text += ["  Concept Name: %s\n" % mapev.getConceptName()]
+                            self.result_text += ["  Semantic Types: %s\n" % mapev.getSemanticTypes()]
+                            self.result_text += ["  Sources: %s\n" % mapev.getSources()]
+                            self.result_text += ["  Positional Info: %s\n" % mapev.getPositionalInfo()]
+                            self.result_text += ["  Negation Status: %s\n" % mapev.getNegationStatus()]
 
     def read_input(self, filename):
         file_content = open(filename)
-        file_text = file_content.read()
+        file_text = json.loads(file_content.read())
         file_content.close()
         return file_text
 
     def process(self, input_file, output_file, server_options):
 
-        input_text = self.read_input(input_file)
+        input_json = self.read_input(input_file)
+
+        input_text = "\n".join(input_json["Case presentation"]).encode("ascii", "replace")
 
         if len(server_options):
             self.api.setOptions(server_options)
 
         result_list = self.api.processCitationsFromString(input_text)
-        output_text = open(output_file, "a+")
+        output_text = open(output_file, "w+")
         for result in result_list:
             if result:
                 print "input text: "
                 print " " + result.getInputText()
-                self.display_utterances(result, display_pcmlist=True, output=output_text)
+                self.display_utterances(result, display_pcmlist=True)
+
+        input_json["MetaMap result"] = self.result_text
+        output_text.write(json.dumps(input_json))
         output_text.close()
 
 if __name__ == '__main__':
@@ -66,6 +74,6 @@ if __name__ == '__main__':
                 i = i + 2
             else:
                 i += 1
-        output_file = input_file.split('.')[0] + 'result.txt'
+        output_file = input_file.split('.')[0] + '.MetaMap.json'
         server_options = ["-R", "CHV,HPO,ICD10CM,MSH,RXNORM", "-V", "USAbase", "-A"]
         inst.process(input_file, output_file, server_options)
