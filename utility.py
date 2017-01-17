@@ -27,5 +27,17 @@ def collect_needed_semantic_types(utterance, need_type):
     return semantic_types
 
 
+def file_in_the_folder(folder_name):
+    """Return the file name under a folder."""
+    from os import listdir
+    from os.path import isfile, join
+    files = [f for f in listdir(folder_name) if isfile(join(folder_name, f))]
+    return files
+
+if __name__=="__main__":
+    print file_in_the_folder("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\")
+
+
+
 
 
