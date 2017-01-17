@@ -9,7 +9,7 @@ from utterance_process import UtteranceProcess
 from BSON_report import BSONReport
 from label_terms import LabelTerms
 from time_point import detect_age, detect_time_point, detect_gender
-from utility import collect_needed_semantic_types
+from utility import collect_needed_semantic_types, file_in_the_folder
 
 
 def read_file(input_file):
@@ -104,28 +104,42 @@ def time_point_extraction(matched_utterances):
             matched_utterances[idx] = detect_time_point(utterance, age_exist=age_detected_flag)
     return matched_utterances
 
-if __name__ == '__main__':
-    processed_case = process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\19159cac990edfd0eac2535b42141417JMCR.MetaMap.json")
-    # processed_case = process("C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2result.txt")
-    matched_utterance = []
-    for utterance in processed_case:
+
+def main(input_file):
+    # group utterance
+    grouped_utterances = process(input_file)
+
+    # match utterance between semantic types and sources
+    matched_utterances = []
+    for utterance in grouped_utterances:
+        # print utterance
         if "Utterance text" in utterance[0][0][0].keys():
             utterance_result = UtteranceProcess(utterance).match()
-            matched_utterance += [utterance_result]
             # print utterance_result
-    result = time_point_extraction(matched_utterance)
-    # for i in result:
-    #     print i
-    processed_result = []
-    for utterance in result:
-        # processed_result += [UtteranceProcess(utterance).order_terms()]
-        processed_result += [LabelTerms(utterance).main()]
-    #
-    u_report = BSONReport()
-    u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\19159cac990edfd0eac2535b42141417JMCR.MetaMap.processed.json")
-    # u_report.generate_report(processed_result, "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\fullcase2.processed.json")
-    # for utt in processed_result:
-    #     print utt
+            matched_utterances += [utterance_result]
+
+    # detect time point string in the utterance
+    time_point_detected_utterances = time_point_extraction(matched_utterances)
+
+    # label time point string to the mapped terms
+    time_point_labeled_utterances = []
+    for utterance in time_point_detected_utterances:
+        time_point_labeled_utterances += [LabelTerms(utterance).main()]
+
+    # generate report
+    report = BSONReport()
+    report.generate_report(time_point_labeled_utterances, input_file.split(".")[0] + ".MetaMap.processed.json")
+
+
+if __name__ == '__main__':
+    # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
+    # for file_name in file_in_the_folder(folder_name):
+    #     if file_name.endswith(".MetaMap.json"):
+    #         print file_name
+    #         main(folder_name + file_name)
+    #         print "finished", file_name
+    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\0b2ccea4dfe3d9e11b7c43eb4182ade4JMCR.MetaMap.json"
+    main(file_name)
 
 
 
