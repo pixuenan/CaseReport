@@ -25,7 +25,8 @@ class LabelTerms(object):
 
         self.term_index_dict = dict()
 
-        self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics"), ("treatment", "therapeutics")]
+        self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics"),
+                                   ("treatment", "therapeutics")]
 
     def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
@@ -42,9 +43,9 @@ class LabelTerms(object):
             term_start = position_list[0]
             term_length = position_list[1]
             index = term_start - self.utterance_start
-            term_word = self.text[index:index+term_length]
+            term_word = self.text[index:index + term_length]
             if not self.wrong_mapping_test(term["Concept Name"], term_word) and \
-                            "[Population Group]" != term["Semantic Types"]:
+                    term["Semantic Types"] not in ["[Population Group]", "[Age Group]"]:
                 self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
 
     def get_time_point(self, phrase):
@@ -85,7 +86,6 @@ class LabelTerms(object):
 
     def label_mapping_result(self):
         # print self.mapping_result, self.text, self.syntax_unit
-        index_list = zip(*self.mapping_result)[0]
         term_list = zip(*zip(*self.mapping_result)[1])[0]
         semantic_types_list = zip(*zip(*self.mapping_result)[1])[1]
         if "[Time Point]" in semantic_types_list:
@@ -110,8 +110,3 @@ class LabelTerms(object):
         if self.mapping_result:
             self.label_mapping_result()
         return self.utterance_dict
-
-
-
-
-

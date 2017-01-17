@@ -101,19 +101,19 @@ def detect_time_point(utterance, age_exist=False):
 
 
 def detect_gender(utterance):
-    genders = {"Woman|Women|Female|Girl": "Female", "Man|Men|Male|Boy": "Male"}
+    genders = {"woman|women|female|girl": "Female", "man|men|male|boy": "Male"}
     for phrase in utterance[1:]:
         if "Age" in phrase["mapping"][0].keys():
             idx = 0
             while idx < len(phrase["mapping"])-1:
                 mapping = phrase["mapping"][1:][idx]
-                if mapping["Semantic Types"] == "[Population Group]":
+                if mapping["Semantic Types"] in ["[Population Group]", "[Age Group]"]:
                     keys = genders.keys()
                     # female
-                    if mapping["Concept Name"] in keys[0]:
+                    if mapping["Concept Name"].lower() in keys[0]:
                         phrase["mapping"][0]["Gender"] = genders[keys[0]]
                     # male
-                    elif mapping["Concept Name"] in keys[1]:
+                    elif mapping["Concept Name"].lower() in keys[1]:
                         phrase["mapping"][0]["Gender"] = genders[keys[1]]
                     # delete the mapped term
                     phrase["mapping"].remove(mapping)

@@ -12,7 +12,7 @@ class UtteranceProcess(object):
         self.utterance = utterance
 
         self.vocabulary = {"[popg]": ["[Population Group]", ["CHV", "MSH"]],
-                           "[aggp]": ["[Age Group]", ["CHV", "MSH"]],
+                           "[aggp]": ["[Age Group]", ["CHV"]],
                            "[dsyn]": ["[Disease or Syndrome]", ["ICD10CM"]],
                            "[neop]": ["[Neoplastic Process]", ["ICD10CM"]],
                            "[sosy]": ["[Sign or Symptom]", ["ICD10CM"]],

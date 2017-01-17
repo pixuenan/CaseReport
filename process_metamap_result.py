@@ -134,14 +134,14 @@ def main(input_file):
 
 
 if __name__ == '__main__':
-    folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
-    for file_name in file_in_the_folder(folder_name):
-        if file_name.endswith(".MetaMap.json"):
-            print file_name
-            main(folder_name + file_name)
-            print "finished", file_name
-    # file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\0b2ccea4dfe3d9e11b7c43eb4182ade4JMCR.MetaMap.json"
-    # main(file_name)
+    # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
+    # for file_name in file_in_the_folder(folder_name):
+    #     if file_name.endswith(".MetaMap.json"):
+    #         print file_name
+    #         main(folder_name + file_name)
+    #         print "finished", file_name
+    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\7790ef0538ddd1ef0fc640464fb8de81JMCR.MetaMap.json"
+    main(file_name)
 
 
 
