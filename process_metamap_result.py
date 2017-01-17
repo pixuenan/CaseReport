@@ -124,7 +124,9 @@ def main(input_file):
     # label time point string to the mapped terms
     time_point_labeled_utterances = []
     for utterance in time_point_detected_utterances:
+        # print utterance
         time_point_labeled_utterances += [LabelTerms(utterance).main()]
+        # print LabelTerms(utterance).main()
 
     # generate report
     report = BSONReport()
@@ -132,14 +134,14 @@ def main(input_file):
 
 
 if __name__ == '__main__':
-    # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
-    # for file_name in file_in_the_folder(folder_name):
-    #     if file_name.endswith(".MetaMap.json"):
-    #         print file_name
-    #         main(folder_name + file_name)
-    #         print "finished", file_name
-    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\0b2ccea4dfe3d9e11b7c43eb4182ade4JMCR.MetaMap.json"
-    main(file_name)
+    folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
+    for file_name in file_in_the_folder(folder_name):
+        if file_name.endswith(".MetaMap.json"):
+            print file_name
+            main(folder_name + file_name)
+            print "finished", file_name
+    # file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\0b2ccea4dfe3d9e11b7c43eb4182ade4JMCR.MetaMap.json"
+    # main(file_name)
 
 
 

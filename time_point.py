@@ -109,10 +109,13 @@ def detect_gender(utterance):
                 mapping = phrase["mapping"][1:][idx]
                 if mapping["Semantic Types"] == "[Population Group]":
                     keys = genders.keys()
+                    # female
                     if mapping["Concept Name"] in keys[0]:
                         phrase["mapping"][0]["Gender"] = genders[keys[0]]
+                    # male
                     elif mapping["Concept Name"] in keys[1]:
                         phrase["mapping"][0]["Gender"] = genders[keys[1]]
+                    # delete the mapped term
                     phrase["mapping"].remove(mapping)
                 else:
                     idx += 1

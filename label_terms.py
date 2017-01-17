@@ -103,7 +103,7 @@ class LabelTerms(object):
                     self.mapping_result.remove(term)
         else:
             for term in self.mapping_result:
-                term[0] = ("Current")
+                term[0] = ("Current", 0)
 
     def main(self):
         self.process()

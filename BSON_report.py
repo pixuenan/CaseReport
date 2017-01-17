@@ -38,22 +38,23 @@ class BSONReport(object):
         term_list = self.report["Terms"][key]
         term_dict = dict()
         for term in term_list:
-            past_term = len(term) == 3
-            semantic_type = past_term and term[2] or term[1]
+            semantic_type = term[2]
             if semantic_type in term_dict:
-                term_dict[semantic_type] += past_term and [term[:2]] or [term[0]]
+                term_dict[semantic_type] += term[0] and [term[:2]] or [term[1]]
             else:
-                term_dict[semantic_type] = [past_term and term[:2] or term[0]]
+                term_dict[semantic_type] = term[0] and [term[:2]] or [term[1]]
         self.report["Terms"][key] = term_dict
 
     def process_utterance(self, utterance):
+        """ Term output: {"Current": [("5 days later", "Edema", "[Finding]"), (0, "Edema", "[Finding]")],
+                          "Past:[]"}"""
         if "Age" in utterance.keys():
             self.report["Age"] = utterance["Age"]
         if "Gender" in utterance.keys():
             self.report["Gender"] = utterance["Gender"]
         for term in utterance["mapping result"]:
-            if term[0] == "Current":
-                self.report["Terms"]["Current"] += [term[1]]
+            if term[0][0] == "Current":
+                self.report["Terms"]["Current"] += [tuple([term[0][1]] + list(term[1]))]
             else:
                 self.report["Terms"]["Past"] += [tuple([term[0][1]] + list(term[1]))]
 
