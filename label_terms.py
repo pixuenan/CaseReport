@@ -26,7 +26,7 @@ class LabelTerms(object):
         self.term_index_dict = dict()
 
         self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics"),
-                                   ("treatment", "therapeutics")]
+                                   ("treatment", "therapeutics"), ("cavity", "dental caries")]
 
     def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
@@ -96,8 +96,11 @@ class LabelTerms(object):
                 if term[1][1] != "[Time Point]":
                     if past_regex(term_list[time_index]):
                         term[0] = ("Past", term_list[time_index])
-                    else:
+                    # only label time point for the current part when the semantic types is sign or symptom
+                    elif term[1][1] == "[Sign or Symptom]":
                         term[0] = ("Current", term_list[time_index])
+                    else:
+                        term[0] = ("Current", 0)
                     term_idx += 1
                 else:
                     self.mapping_result.remove(term)

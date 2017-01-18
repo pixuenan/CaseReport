@@ -46,7 +46,7 @@ def detect_history_string(text):
      Result: list of detected history string.
     """
     # 3-year history, past history, history of, family history
-    history_pattern = re.compile(r"((\s|^)([^\s]+?)(\s|-)(year)s?)?((\s|^)[fF]amily)?\s(history)")
+    history_pattern = re.compile(r"((\s|^)([^\s]+?)(\s|-)(year|month|week|day)s?)?((\s|^)[fF]amily)?\s(history)")
     history_string_list = []
     while history_pattern.search(text):
         history_result = history_pattern.search(text)
@@ -123,13 +123,16 @@ def detect_gender(utterance):
 
 
 def past_regex(text):
-    past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|\sbefore|\searlier\sprior|[Pp]ast)")
+    past_pattern = re.compile(r"([\s-]old|history|\sago|\sprior|\sbefore|\searlier|\sprior|[Pp]ast)")
     year_pattern = re.compile(r"(20|19)([0-9]{2})")
-    return past_pattern.search(text) or year_pattern.search(text) and True or False
+    return (past_pattern.search(text) or year_pattern.search(text)) and True or False
 
 if __name__=="__main__":
-    s = "A 44-year-old white man with a past medical history of viral myocarditis, reduced left ventricular function, and continuous beta-blocker therapy, collapsed on the street."
-    print detect_history_string(s)
+    # s = "A 44-year-old white man with a past medical history of viral myocarditis, reduced left ventricular function, and continuous beta-blocker therapy, collapsed on the street."
+    # s = "A 29-year-old Moroccan man presented to our hospital with a 6-month history of headache in his left skull, associated with homolateral facial pain, numbness, dip-lopia, exophthalmia, eye watering, and an episode of epi-staxis.'"
+    # print detect_history_string(s)
+    # s = "The patient was in her usual good health until 5 days earlier, when she started to have chills and fever. Jaundice had become manifest 2 days earlier."
+    print past_regex(s)
 
 
 

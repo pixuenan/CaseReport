@@ -6,7 +6,6 @@ Xuenan Pi
 """
 
 import json
-import collections
 
 
 class BSONReport(object):
@@ -18,20 +17,12 @@ class BSONReport(object):
         self.report["Terms"]["Past"] = None
         self.report["Terms"]["Current"] = None
 
-    def delete_consecutive_repetitive(self):
-        """Only delete the consecutive repetitive terms in the report
+    def delete_repetitive(self, time_section):
+        """ Delete the repetitive terms in the report
         Input: list of [mapped term, semantic types]"""
-        for semantic_type in self.report["Terms"]["Current"].keys():
-            idx = 0
-            concept_list = self.report["Terms"]["Current"][semantic_type]
-            while idx < len(concept_list):
-                concept = concept_list[idx]
-                count_dict = collections.Counter(concept_list)
-                if count_dict[concept] > 1:
-                    for repeat_time in range(count_dict[concept]-1):
-                        concept_list.remove(concept)
-                else:
-                    idx += 1
+        for semantic_type in self.report["Terms"][time_section].keys():
+            concept_list = self.report["Terms"][time_section][semantic_type]
+            self.report["Terms"][time_section][semantic_type] = list(set(concept_list))
 
     def group_by_semantic_types(self, key):
         """Group the mapped terms by semantic types"""
@@ -40,9 +31,9 @@ class BSONReport(object):
         for term in term_list:
             semantic_type = term[2]
             if semantic_type in term_dict:
-                term_dict[semantic_type] += term[0] and [term[:2]] or [term[1]]
+                term_dict[semantic_type] += term[0] and [tuple(term[:2])] or [term[1]]
             else:
-                term_dict[semantic_type] = term[0] and [term[:2]] or [term[1]]
+                term_dict[semantic_type] = term[0] and [tuple(term[:2])] or [term[1]]
         self.report["Terms"][key] = term_dict
 
     def process_utterance(self, utterance):
@@ -66,6 +57,7 @@ class BSONReport(object):
             self.process_utterance(utterance)
         self.group_by_semantic_types("Current")
         self.group_by_semantic_types("Past")
-        self.delete_consecutive_repetitive()
+        self.delete_repetitive("Current")
+        self.delete_repetitive("Past")
         output_file.write(json.dumps(self.report, indent=4))
         output_file.close()
