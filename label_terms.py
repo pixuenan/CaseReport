@@ -26,7 +26,8 @@ class LabelTerms(object):
         self.term_index_dict = dict()
 
         self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics"),
-                                   ("treatment", "therapeutics"), ("cavity", "dental caries")]
+                                   ("treatment", "therapeutics"), ("cavity", "dental caries"),
+                                   ("aggressive", "aggressive behavior"), ("water", "water"), ("immersion", "immersion")]
 
     def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
