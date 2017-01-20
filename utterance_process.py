@@ -16,7 +16,7 @@ class UtteranceProcess(object):
                            "[dsyn]": ["[Disease or Syndrome]", ["ICD10CM"]],
                            "[neop]": ["[Neoplastic Process]", ["ICD10CM"]],
                            "[sosy]": ["[Sign or Symptom]", ["ICD10CM"]],
-                           "[patf]": ["[Pathologic Function]", ["CHV", "ICD10CM"]],
+                           "[patf]": ["[Pathologic Function]", ["CHV", "ICD10CM"], ["CHV", "MSH"]],
                            "[fndg]": ["[Finding]", ["HPO", "ICD10CM"]],
                            "[mobd]": ["[Mental or Behavioral Dysfunction", ["MSH"]],
                            "[diap]": ["[Diagnostic Procedure]", ["MSH", "CHV"]],
@@ -40,9 +40,16 @@ class UtteranceProcess(object):
         return semantic_type
 
     def match_source(self, semantic_type, sources):
-        required_sources = self.vocabulary[semantic_type][1]
-        matched_sources = [source for source in sources if source in required_sources]
-        return len(required_sources) == len(matched_sources)
+        if len(self.vocabulary[semantic_type]) > 2:
+            required_sources1 = self.vocabulary[semantic_type][1]
+            required_sources2 = self.vocabulary[semantic_type][2]
+            matched_sources1 = [source for source in sources if source in required_sources1]
+            matched_sources2 = [source for source in sources if source in required_sources2]
+            return (len(required_sources1) == len(matched_sources1)) or (len(required_sources2) == len(matched_sources2))
+        else:
+            required_sources = self.vocabulary[semantic_type][1]
+            matched_sources = [source for source in sources if source in required_sources]
+            return len(required_sources) == len(matched_sources)
 
     def match_semantic_types(self, phrase):
         """ Match the semantic type and the correspond sources. Only keep the mapping result
