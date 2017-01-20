@@ -132,6 +132,7 @@ if __name__=="__main__":
     # s = "A 29-year-old Moroccan man presented to our hospital with a 6-month history of headache in his left skull, associated with homolateral facial pain, numbness, dip-lopia, exophthalmia, eye watering, and an episode of epi-staxis.'"
     # print detect_history_string(s)
     # s = "The patient was in her usual good health until 5 days earlier, when she started to have chills and fever. Jaundice had become manifest 2 days earlier."
+    s = "3 month"
     print past_regex(s)
 
 

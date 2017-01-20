@@ -13,7 +13,7 @@ class LabelTerms(object):
     def __init__(self, utterance):
         self.input_utterance = utterance
 
-        self.utterance_start = int(self.input_utterance[0]["Utterance start index"][1:-1].split(",")[0])
+        self.utterance_start = int(self.input_utterance[0]["Utterance start index"][0])
         self.text = self.input_utterance[0]["Utterance text"]
         self.syntax_unit = self.input_utterance[0]["Utterance syntax unit"]
 
@@ -41,7 +41,7 @@ class LabelTerms(object):
         # avoid including repetitive mapping result
         if not self.term_index_dict.values() or \
                         term["Concept Name"] not in zip(*self.term_index_dict.values())[0]:
-            position_list = ast.literal_eval(term["Positional Info"])[0]
+            position_list = term["Positional Info"]
             term_start = position_list[0]
             term_length = position_list[1]
             index = term_start - self.utterance_start

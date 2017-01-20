@@ -5,6 +5,7 @@ Xuenan Pi
 06/01/2016
 """
 
+import ast
 
 class UtteranceProcess(object):
 
@@ -30,46 +31,74 @@ class UtteranceProcess(object):
     def check_semantic_type(self, semantic_types):
         """Check if the mapping result has semantic types needed."""
         # the semantic types can be multiple types
-        semantic_type = False
-        if semantic_types in self.vocabulary.keys():
-            semantic_type = semantic_types
-        elif "," in semantic_types:
-            semantic_types_list = ["[%s]" % s_type.strip() for s_type in semantic_types[1:-1].split(",")]
-            matched_semantic_type = [s_type for s_type in semantic_types_list if s_type in self.vocabulary.keys()]
-            semantic_type = matched_semantic_type and matched_semantic_type[0] or False
+        matched_semantic_type = [s_type for s_type in semantic_types if s_type in self.vocabulary.keys()]
+        semantic_type = matched_semantic_type and matched_semantic_type[0] or False
         return semantic_type
 
+    def construct_term_dict(self, key, value):
+        """Construct the term dict."""
+        term_dict = dict()
+        term_dict["Concept Name"] = key
+        term_dict["Positional Info"] = value[0]
+        term_dict["Semantic Types"] = self.vocabulary[value[1]][0]
+        term_dict["Sources"] = value[2]
+        return term_dict
+
+    def mapping_collection(self, phrase):
+        """Collect all the mapped terms and their info."""
+        mapping_term_dict = dict()
+        for mapping in phrase[1:]:
+            for term in mapping:
+                concept_name = term["Concept Name"]
+                negation = int(term["Negation Status"].strip()) and True or False
+                semantic_types = ["[%s]" % s_type.strip() for s_type in term["Semantic Types"][1:-1].split(",")]
+                sources = [source.strip() for source in term["Sources"][1:-1].split(",")]
+                position = ast.literal_eval(term["Positional Info"])[0]
+                if not negation:
+                    if concept_name not in mapping_term_dict.keys():
+                        mapping_term_dict[concept_name] = [position, semantic_types, sources]
+                    # add source if there is multiple mapping result for the same term
+                    elif semantic_types == mapping_term_dict[concept_name][1]:
+                        mapping_term_dict[concept_name][2] += sources
+        return mapping_term_dict
+
     def match_source(self, semantic_type, sources):
+        """Match the given sources and required sources. The number of matched sources need to be equal to the required
+        sources.
+        Return: 1, matched; 2, not matched. The result has to be a true boolean value to be used in anther function."""
         if len(self.vocabulary[semantic_type]) > 2:
             required_sources1 = self.vocabulary[semantic_type][1]
             required_sources2 = self.vocabulary[semantic_type][2]
             matched_sources1 = [source for source in sources if source in required_sources1]
             matched_sources2 = [source for source in sources if source in required_sources2]
-            return (len(required_sources1) == len(matched_sources1)) or (len(required_sources2) == len(matched_sources2))
+            return (len(required_sources1) == len(matched_sources1)) or \
+                   (len(required_sources2) == len(matched_sources2)) and 1 or 2
         else:
             required_sources = self.vocabulary[semantic_type][1]
             matched_sources = [source for source in sources if source in required_sources]
-            return len(required_sources) == len(matched_sources)
+            return len(required_sources) == len(matched_sources) and 1 or 2
 
-    def match_semantic_types(self, phrase):
-        """ Match the semantic type and the correspond sources. Only keep the mapping result
-        if the semantic type is in the vocabulary and the sources are also correct."""
+    def match_semantic_types(self, mapping_term_dict):
+        """Match the semantic type and the correspond sources. Only keep the mapping result
+        if the semantic type is in the vocabulary and the sources are also correct.
+
+        Input: all mapped term for the phrase, {concept name : [position, semantic type, source]}
+        Return: list of dict for matched terms, [{"Concept Name", "Positional Info", "Semantic Types", "Sources"}]"""
         mapping_result = []
-        for mapping in phrase[1:]:
-            for term in mapping:
-                term_dict = dict()
-                if term and not int(term["Negation Status"].strip()):
-                    semantic_type_needed = self.check_semantic_type(term["Semantic Types"])
-                    sources = [source.strip() for source in term["Sources"][1:-1].split(",")]
-                    source_matched = semantic_type_needed and self.match_source(semantic_type_needed, sources) or False
-                    if source_matched:
-                        term["Semantic Types"] = self.vocabulary[semantic_type_needed][0]
-                        for key in self.needed_keys:
-                            term_dict[key] = term[key]
-                # check if the mapping pruned_utterances is already in the dictionary, repetitive
-                # mapping case
-                if term_dict not in mapping_result and term_dict:
-                    mapping_result += [term_dict]
+        position_list = []
+        # set the semantic types list
+        for concept_name, info in mapping_term_dict.items():
+            source_set = list(set(info[2]))
+            # check if the term is needed and matched
+            semantic_type_needed = self.check_semantic_type(mapping_term_dict[concept_name][1])
+            source_matched = semantic_type_needed and self.match_source(semantic_type_needed, source_set) or False
+            mapping_term_dict[concept_name][1] = semantic_type_needed
+            mapping_term_dict[concept_name][2] = source_set
+            # keep one mapping result for one term
+            position_info = mapping_term_dict[concept_name][0]
+            if source_matched == 1 and position_info not in position_list:
+                position_list += [position_info]
+                mapping_result += [self.construct_term_dict(concept_name, mapping_term_dict[concept_name])]
         return mapping_result
 
     def match(self):
@@ -81,7 +110,7 @@ class UtteranceProcess(object):
         # the first element of the utterance list is the utterance text
         utterance_dict = dict()
         utterance_dict["Utterance text"] = self.utterance[0][0][0]["Utterance text"]
-        utterance_dict["Utterance start index"] = self.utterance[0][0][0]["Position"]
+        utterance_dict["Utterance start index"] = self.utterance[0][0][0]["Position"][1:-1].split(",")
         utterance_dict["Utterance syntax unit"] = self.get_lexical_type()
         utterance_unit_list += [utterance_dict]
         for phrase in self.utterance:
@@ -90,7 +119,8 @@ class UtteranceProcess(object):
                 phrase_dict = dict()
                 # the first element of the phrase list is the text of the phrase
                 phrase_dict["text"] = phrase[0][0]["text"]
-                phrase_dict["mapping"] = self.match_semantic_types(phrase)
+                phrase_mapping_result_dict = self.mapping_collection(phrase)
+                phrase_dict["mapping"] = self.match_semantic_types(phrase_mapping_result_dict)
                 if phrase_dict["mapping"]:
                     utterance_unit_list += [phrase_dict]
         return utterance_unit_list

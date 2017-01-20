@@ -59,7 +59,7 @@ def convert(element):
 
 
 def process(input_file):
-    """"""
+    """Group the result and convert string to dictionary."""
     result_list = read_file(input_file)
     # group the result from one sentence together
     grouped_utterance = []
@@ -112,7 +112,7 @@ def main(input_file):
     # match utterance between semantic types and sources
     matched_utterances = []
     for utterance in grouped_utterances:
-        print utterance
+        # print utterance
         if "Utterance text" in utterance[0][0][0].keys():
             utterance_result = UtteranceProcess(utterance).match()
             # print utterance_result
@@ -124,7 +124,7 @@ def main(input_file):
     # label time point string to the mapped terms
     time_point_labeled_utterances = []
     for utterance in time_point_detected_utterances:
-        print utterance
+        # print utterance
         time_point_labeled_utterances += [LabelTerms(utterance).main()]
         # print LabelTerms(utterance).main()
 
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     #         print file_name
     #         main(folder_name + file_name)
     #         print "finished", file_name
-    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\9d37d81d042512d39d8c34c62552b03bJMCR.MetaMap.json"
+    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\86f028635ab7baa052b51f4a2cbfc948JMCR.MetaMap.json"
     main(file_name)
 
 
