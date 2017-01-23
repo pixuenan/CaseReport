@@ -16,10 +16,17 @@
  */
 package org.factpub.factify;
 
-import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.factpub.factify.nlp.Sequence;
+import org.factpub.factify.nlp.StanfordNLPLight;
+import org.factpub.factify.pattern.Acronym;
 import org.factpub.factify.pdf.converter.PDFConverter;
 import org.factpub.factify.utility.Debug;
 import org.factpub.factify.utility.Debug.DEBUG_CONFIG;
@@ -30,6 +37,7 @@ import org.json.simple.JSONObject;
 import at.knowcenter.code.pdf.structure.PDF;
 import at.knowcenter.code.pdf.structure.Paragraph;
 
+import java.io.File;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -198,8 +206,9 @@ public class Pdf2TextJMCR {
 			Utility.sewBrokenSentence(pdf.body_and_heading);
 			boolean introPrintFlag = false; 
 			boolean casePrintFlag = false; 
-			JSONArray introParaArray = new JSONArray();
 			JSONArray caseParaArray = new JSONArray();
+			List<Sequence> introSequences = new ArrayList<Sequence>();
+			List<Sequence> caseSequences = new ArrayList<Sequence>();
 			for(int i = 0; i < pdf.body_and_heading.size(); i++) {
 				Paragraph para = pdf.body_and_heading.get(i);
 				
@@ -223,14 +232,23 @@ public class Pdf2TextJMCR {
 					casePrintFlag = false; 
 				}
 				if (introPrintFlag){
-					introParaArray.add(para.text);
+					List<Sequence> para_seq = StanfordNLPLight.INSTANCE.textToSequence(para.text, true);
+					introSequences.addAll(para_seq);
 				}
 				if (casePrintFlag){
-					caseParaArray.add(para.text);
+					List<Sequence> para_seq = StanfordNLPLight.INSTANCE.textToSequence(para.text, true);
+					caseSequences.addAll(para_seq);
 				}
 				
 			}
-			reportTxt.put("Introduction", introParaArray);
+			
+			Map<String, Sequence> acronyms = Acronym.findAcronyms(introSequences);
+			
+			for (Sequence sentence: caseSequences) {
+				String sentenceText = sentence.getSourceString();
+				caseParaArray.add(acronymReplace(sentenceText, acronyms));
+			}
+			
 			reportTxt.put("Case presentation", caseParaArray);
 			out.write(reportTxt.toJSONString());
 			out.flush();
@@ -243,6 +261,18 @@ public class Pdf2TextJMCR {
 		 */
 		
 		return 1;
+	}
+	
+	/*
+	 * Replace the acronym in the sentences with the full name.
+	 */
+	private static String acronymReplace(String text, Map<String, Sequence> acronymDict) {
+		for (String s: acronymDict.keySet()) {
+			if (text.contains(s)) {
+				text = text.replace(s, acronymDict.get(s).getSourceString());
+			}
+		}
+		return text;
 	}
 	
 	
