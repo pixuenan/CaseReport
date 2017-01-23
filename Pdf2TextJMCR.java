@@ -57,7 +57,7 @@ public class Pdf2TextJMCR {
 	
 		
 		/* sample pdf file*/
-		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\AJCR\\";
+		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\JMCR\\";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1168-0.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1160-8.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1169-z.pdf";
@@ -74,7 +74,7 @@ public class Pdf2TextJMCR {
 //		System.out.println(parameters[2]);
 //		System.out.println(parameters[3]);
 		
-		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\AJCR\\");
+		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\JMCR\\");
 		File[] listOfFiles = folder.listFiles();
 
 		    for (int i = 0; i < listOfFiles.length; i++) {
@@ -193,7 +193,7 @@ public class Pdf2TextJMCR {
 			Writer out; 
 			boolean append = false;
 			String facts_name = Utility.MD5(path);
-			String fact_file = output_dir + facts_name + "AJCR.json";
+			String fact_file = output_dir + facts_name + "JMCR.json";
 			out = new BufferedWriter(new OutputStreamWriter(
 					  new FileOutputStream(new File(fact_file), append), "US-ASCII"));
 			
@@ -215,8 +215,6 @@ public class Pdf2TextJMCR {
 				if (para.text.startsWith("Received:")){
 					reportTxt.put("Received Date", para.text);
 //					System.out.println(para.text);
-//					out.write(para.text);
-//					out.write('\n');
 				}
 				String paraText = para.text.replace("\n", "").replace("\r", "");
 				if (paraText.equals("Introduction") || paraText.equals("Background")){
@@ -241,12 +239,18 @@ public class Pdf2TextJMCR {
 				}
 				
 			}
+			if (!introSequences.isEmpty()) {
+				Map<String, Sequence> acronyms = Acronym.findAcronyms(introSequences);
 			
-			Map<String, Sequence> acronyms = Acronym.findAcronyms(introSequences);
-			
-			for (Sequence sentence: caseSequences) {
-				String sentenceText = sentence.getSourceString();
-				caseParaArray.add(acronymReplace(sentenceText, acronyms));
+				for (Sequence sentence: caseSequences) {
+					String sentenceText = sentence.getSourceString();
+					caseParaArray.add(acronymReplace(sentenceText, acronyms));
+				}
+			} else {
+				for (Sequence sentence: caseSequences) {
+					String sentenceText = sentence.getSourceString();
+					caseParaArray.add(sentenceText);
+				}
 			}
 			
 			reportTxt.put("Case presentation", caseParaArray);
