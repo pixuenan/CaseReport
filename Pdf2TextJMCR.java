@@ -49,7 +49,7 @@ public class Pdf2TextJMCR {
 	
 		
 		/* sample pdf file*/
-		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport_JMCR\\";
+		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\AJCR\\";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1168-0.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1160-8.pdf";
 //		String pdf_file = "art%3A10.1186%2Fs13256-016-1169-z.pdf";
@@ -66,7 +66,7 @@ public class Pdf2TextJMCR {
 //		System.out.println(parameters[2]);
 //		System.out.println(parameters[3]);
 		
-		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport_JMCR\\");
+		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\AJCR\\");
 		File[] listOfFiles = folder.listFiles();
 
 		    for (int i = 0; i < listOfFiles.length; i++) {
@@ -82,13 +82,9 @@ public class Pdf2TextJMCR {
 		        int error = extractText(parameters);
 		        Debug.println("Finished with errorcode " + error, DEBUG_CONFIG.debug_error);
 		
-		      } else if (listOfFiles[i].isDirectory()) {
-		        System.out.println("Directory " + listOfFiles[i].getName());
-		      }
+		    }
 		    }
 		
-//		int error = extractText(parameters);
-//		Debug.println("Finished with errorcode " + error, DEBUG_CONFIG.debug_error);
 	}
 	
 	/**
@@ -189,18 +185,21 @@ public class Pdf2TextJMCR {
 			Writer out; 
 			boolean append = false;
 			String facts_name = Utility.MD5(path);
-			String fact_file = output_dir + facts_name + "JMCR.json";
+			String fact_file = output_dir + facts_name + "AJCR.json";
 			out = new BufferedWriter(new OutputStreamWriter(
 					  new FileOutputStream(new File(fact_file), append), "US-ASCII"));
 			
 
-			reportTxt.put("Title", pdf.candidateTitle.get(2).text);
-//			out.write("Title:" + pdf.candidateTitle.get(2).text + "\n\r");
-//			System.out.println("Title:" + pdf.candidateTitle.get(2).text);
+			reportTxt.put("DOI", pdf.doi);
+//			System.out.println("###PDF Name:" + path);
+//			System.out.println("###Title:" + pdf.candidateTitle.get(2).text);
+//			System.out.println("###JSon Name:" + fact_file);
 			
 			Utility.sewBrokenSentence(pdf.body_and_heading);
-			boolean printFlag = false; 
-			JSONArray paraArray = new JSONArray();
+			boolean introPrintFlag = false; 
+			boolean casePrintFlag = false; 
+			JSONArray introParaArray = new JSONArray();
+			JSONArray caseParaArray = new JSONArray();
 			for(int i = 0; i < pdf.body_and_heading.size(); i++) {
 				Paragraph para = pdf.body_and_heading.get(i);
 				
@@ -210,21 +209,29 @@ public class Pdf2TextJMCR {
 //					out.write(para.text);
 //					out.write('\n');
 				}
-				
-				if (para.text.replace("\n", "").replace("\r", "").equals("Case presentation")){
-					printFlag = true; 
+				String paraText = para.text.replace("\n", "").replace("\r", "");
+				if (paraText.equals("Introduction") || paraText.equals("Background")){
+					introPrintFlag = true; 
 					continue;
 				}
-				if (para.text.replace("\n", "").replace("\r", "").equals("Discussion")){
-					printFlag = false; 
+				if (paraText.startsWith("Case")){
+					casePrintFlag = true; 
+					introPrintFlag = false; 
+					continue;
 				}
-				if (printFlag){
-					paraArray.add(para.text);
-//					System.out.println(para.text);
+				if (paraText.equals("Discussion")){
+					casePrintFlag = false; 
+				}
+				if (introPrintFlag){
+					introParaArray.add(para.text);
+				}
+				if (casePrintFlag){
+					caseParaArray.add(para.text);
 				}
 				
 			}
-			reportTxt.put("Case presentation", paraArray);
+			reportTxt.put("Introduction", introParaArray);
+			reportTxt.put("Case presentation", caseParaArray);
 			out.write(reportTxt.toJSONString());
 			out.flush();
 			out.close();
