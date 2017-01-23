@@ -23,7 +23,7 @@ class UtteranceProcess(object):
                            "[diap]": ["[Diagnostic Procedure]", ["MSH", "CHV"]],
                            "[lbpr]": ["[Laboratory Procedure]", ["MSH", "CHV"]],
                            "[phsu]": ["[Pharmacologic Substance]", ["MSH", "CHV", "RXNORM"]],
-                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"]]
+                           "[topp]": ["[Therapeutic or Preventive Procedure]", ["CHV", "MSH"], ["MSH"]]
                            }
 
         self.needed_keys = ["Concept Name", "Semantic Types", "Sources", "Positional Info"]
@@ -49,13 +49,13 @@ class UtteranceProcess(object):
         mapping_term_dict = dict()
         for mapping in phrase[1:]:
             for term in mapping:
-                concept_name = term["Concept Name"]
+                concept_name = term["Concept Name"].capitalize()
                 negation = int(term["Negation Status"].strip()) and True or False
                 semantic_types = ["[%s]" % s_type.strip() for s_type in term["Semantic Types"][1:-1].split(",")]
                 sources = [source.strip() for source in term["Sources"][1:-1].split(",")]
                 position = ast.literal_eval(term["Positional Info"])[0]
                 if not negation:
-                    if concept_name not in mapping_term_dict.keys():
+                    if concept_name.capitalize() not in mapping_term_dict.keys():
                         mapping_term_dict[concept_name] = [position, semantic_types, sources]
                     # add source if there is multiple mapping result for the same term
                     elif semantic_types == mapping_term_dict[concept_name][1]:
