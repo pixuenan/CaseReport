@@ -42,6 +42,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Writer;
 /**
  * This is the main class for convert pdf to text from Journal of Medical reports
@@ -57,24 +58,13 @@ public class Pdf2TextJMCR {
 	
 		
 		/* sample pdf file*/
-		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\JMCR\\";
-//		String pdf_file = "art%3A10.1186%2Fs13256-016-1168-0.pdf";
-//		String pdf_file = "art%3A10.1186%2Fs13256-016-1160-8.pdf";
-//		String pdf_file = "art%3A10.1186%2Fs13256-016-1169-z.pdf";
-
+		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\";
+		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\");
+		System.setOut(new PrintStream(new FileOutputStream("C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\output.txt")));
 		
-//		String[] parameters = new String[4];
-//		parameters[0] = input_folder + pdf_file;
-//		parameters[1] = input_folder;
-//		parameters[2] = input_folder;
-//		parameters[3] = "";
-//		
-//		System.out.println(parameters[0]);
-//		System.out.println(parameters[1]);
-//		System.out.println(parameters[2]);
-//		System.out.println(parameters[3]);
-		
-		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\JMCR\\");
+//		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\";
+//		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\");
+//		System.setOut(new PrintStream(new FileOutputStream("C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\output.txt")));
 		File[] listOfFiles = folder.listFiles();
 
 		    for (int i = 0; i < listOfFiles.length; i++) {
@@ -190,18 +180,6 @@ public class Pdf2TextJMCR {
 		 */
 		else if(new File(path).canWrite()) {
 			JSONObject reportTxt = new JSONObject();
-			Writer out; 
-			boolean append = false;
-			String facts_name = Utility.MD5(path);
-			String fact_file = output_dir + facts_name + "JMCR.json";
-			out = new BufferedWriter(new OutputStreamWriter(
-					  new FileOutputStream(new File(fact_file), append), "US-ASCII"));
-			
-
-			reportTxt.put("DOI", pdf.doi);
-//			System.out.println("###PDF Name:" + path);
-//			System.out.println("###Title:" + pdf.candidateTitle.get(2).text);
-//			System.out.println("###JSon Name:" + fact_file);
 			
 			Utility.sewBrokenSentence(pdf.body_and_heading);
 			boolean introPrintFlag = false; 
@@ -211,22 +189,22 @@ public class Pdf2TextJMCR {
 			List<Sequence> caseSequences = new ArrayList<Sequence>();
 			for(int i = 0; i < pdf.body_and_heading.size(); i++) {
 				Paragraph para = pdf.body_and_heading.get(i);
+//				System.out.println(para.text);
 				
 				if (para.text.startsWith("Received:")){
 					reportTxt.put("Received Date", para.text);
-//					System.out.println(para.text);
 				}
-				String paraText = para.text.replace("\n", "").replace("\r", "");
-				if (paraText.equals("Introduction") || paraText.equals("Background")){
+				String paraText = para.text.replace("\n", "").replace("\r", "").toLowerCase();
+				if (para.isHeading() && (paraText.contains("introduction") || paraText.contains("background"))){
 					introPrintFlag = true; 
 					continue;
 				}
-				if (paraText.startsWith("Case")){
+				if (para.isHeading() && paraText.contains("case")){
 					casePrintFlag = true; 
 					introPrintFlag = false; 
 					continue;
 				}
-				if (paraText.equals("Discussion")){
+				if (para.isHeading() && paraText.contains("discussion")){
 					casePrintFlag = false; 
 				}
 				if (introPrintFlag){
@@ -254,9 +232,26 @@ public class Pdf2TextJMCR {
 			}
 			
 			reportTxt.put("Case presentation", caseParaArray);
-			out.write(reportTxt.toJSONString());
-			out.flush();
-			out.close();
+			reportTxt.put("DOI", pdf.doi);
+			
+			System.out.println("###PDF Name:" + path);
+			System.out.println("###Title:" + pdf.candidateTitle.get(2).text);
+			
+			if (caseParaArray.isEmpty()){
+				System.out.println("!!! No case report extracted !!!");
+			}
+			else{
+				Writer out; 
+				boolean append = false;
+				String facts_name = Utility.MD5(path);
+				String fact_file = output_dir + facts_name + "JMCR.json";
+				out = new BufferedWriter(new OutputStreamWriter(
+						new FileOutputStream(new File(fact_file), append), "US-ASCII"));
+				out.write(reportTxt.toJSONString());
+				out.flush();
+				out.close();
+				System.out.println("###JSon Name:" + fact_file);
+			}
 		}
 
 		
