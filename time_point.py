@@ -68,12 +68,16 @@ def detect_age(utterance):
     """
     text = utterance[0]["Utterance text"]
     result = age_pattern.search(text)
+    age = None
     if result:
         age = ''.join(result.group(1, 2, 3, 4, 5))
-        age_dict = dict()
-        age_dict["Age"] = age
-        utterance[1]["mapping"].insert(0, age_dict)
-    return utterance
+    else:
+        # detect infant age info
+        for phrase in utterance[1:]:
+            for term in phrase["mapping"]:
+                if term["Semantic Types"] == "[Age Group]" and "infant" in term["Concept Name"].lower():
+                    age = "Infant"
+    return age
 
 
 def detect_time_point(utterance, age_exist=False):
@@ -101,24 +105,26 @@ def detect_time_point(utterance, age_exist=False):
 
 
 def detect_gender(utterance):
-    genders = [("woman|women|female|girl", "Female"), ("man|men|male|boy", "Male")]
+    genders = [("woman|women|female|girl", "Female"), ("man|men|male|males|boy", "Male")]
+    gender = None
     for phrase in utterance[1:]:
-        if "Age" in phrase["mapping"][0].keys():
-            idx = 0
-            while idx < len(phrase["mapping"])-1:
-                mapping = phrase["mapping"][1:][idx]
-                if mapping["Semantic Types"] in ["[Population Group]", "[Age Group]"]:
-                    # female
-                    if mapping["Concept Name"].lower() in genders[1][0]:
-                        phrase["mapping"][0]["Gender"] = genders[1][1]
-                    # male
-                    elif mapping["Concept Name"].lower() in genders[0][0]:
-                        phrase["mapping"][0]["Gender"] = genders[0][1]
-                    # delete the mapped term
-                    phrase["mapping"].remove(mapping)
-                else:
-                    idx += 1
-    return utterance
+        idx = 0
+        while idx < len(phrase["mapping"]):
+            term = phrase["mapping"][idx]
+            # print "+++", term
+            if term["Semantic Types"] in ["[Population Group]", "[Age Group]", "[Organism Attribute]"]:
+                # female
+                # print "---", term["Concept Name"].lower() in genders[1][0]
+                mapped_concept = term["Concept Name"].split()[-1].lower()
+                if mapped_concept in genders[1][0]:
+                    gender = genders[1][1]
+                # male
+                elif mapped_concept in genders[0][0]:
+                    gender = genders[0][1]
+                phrase["mapping"].remove(term)
+            else:
+                idx += 1
+    return gender
 
 
 def past_regex(text):

@@ -14,8 +14,9 @@ class UtteranceProcess(object):
 
         self.vocabulary = {"[popg]": ["[Population Group]", ["CHV", "MSH"]],
                            "[aggp]": ["[Age Group]", ["CHV"]],
+                           "[orga]": ["[Organism Attribute]", ["CHV", "MSH"]],
                            "[dsyn]": ["[Disease or Syndrome]", ["ICD10CM"], ["CHV", "MSH"]],
-                           "[neop]": ["[Neoplastic Process]", ["ICD10CM"]],
+                           "[neop]": ["[Neoplastic Process]", ["ICD10CM"], ["CHV", "MSH"]],
                            "[sosy]": ["[Sign or Symptom]", ["ICD10CM"]],
                            "[patf]": ["[Pathologic Function]", ["CHV", "ICD10CM"], ["CHV", "MSH"]],
                            "[fndg]": ["[Finding]", ["HPO", "ICD10CM"]],

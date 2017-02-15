@@ -81,24 +81,41 @@ def process(input_file):
     return grouped_utterance
 
 
+def clean_orga(utterance):
+    """Delete the terms with semantic types of [orga] after the detection of gender. The [orga] info is only for the
+    mapping of 'Male' to 'Males' by MetaMap."""
+    for phrase in utterance[1:]:
+        idx = 0
+        while idx < len(phrase["mapping"]):
+            term = phrase["mapping"][idx]
+            if "Semantic Types" in term.keys() and term["Semantic Types"] == "[Organism Attribute]":
+                del phrase["mapping"][idx]
+            else:
+                idx += 1
+    return utterance
+
+
 def time_point_extraction(matched_utterances):
-    """ Extract time point terms"""
-    age_need_types = ["[Age Group]", "[Population Group]"]
+    """ Extract time point terms. Detect the age and gender information in the first sentence."""
+    # age_need_types = ["[Age Group]", "[Population Group]"]
 
     time_need_types = ["[Disease or Syndrome]", "[Neoplastic Process]", "[Sign or Symptom]",
                        "[Pathologic Function]", "[Finding]", "[Mental or Behavioral Dysfunction]",
                        "[Pharmacologic Substance]", "[Therapeutic or Preventive Procedure]"]
     age_detected_flag = False
     for idx, utterance in enumerate(matched_utterances):
-        if not age_detected_flag:
-            semantic_types = collect_needed_semantic_types(utterance, age_need_types)
-            if semantic_types:
-                # detect age
-                matched_utterances[idx] = detect_age(utterance)
-                # detect gender
-                matched_utterances[idx] = detect_gender(utterance)
-                age_detected_flag = True
+        if idx == 0:
+            # detect age
+            age = detect_age(utterance)
+            # detect gender
+            gender = detect_gender(utterance)
+            info_dict = {"Age": age, "Gender": gender}
+            matched_utterances[idx][1]["mapping"].insert(0, info_dict)
+            # print matched_utterances[idx]
+            # print "info", info_dict
+            age_detected_flag = age and True or False
 
+        matched_utterances[idx] = clean_orga(matched_utterances[idx])
         semantic_types = collect_needed_semantic_types(utterance, time_need_types)
         if semantic_types:
             matched_utterances[idx] = detect_time_point(utterance, age_exist=age_detected_flag)
@@ -134,14 +151,16 @@ def main(input_file):
 
 
 if __name__ == '__main__':
-    folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
+    # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
+    folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\"
     for file_name in file_in_the_folder(folder_name):
         if file_name.endswith(".MetaMap.json"):
             print file_name
             main(folder_name + file_name)
             print "finished", file_name
-    # file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\84eb42e66f1549dc9fa04a68901ac112JMCR.MetaMap.json"
+    # file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\dedaad80e4874ae9a947aff7593e4d4eJMCR.MetaMap.json"
     # main(file_name)
 
 
-
+#
+#
