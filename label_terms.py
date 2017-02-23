@@ -25,10 +25,15 @@ class LabelTerms(object):
 
         self.term_index_dict = dict()
 
-        self.wrong_mapping_list = [("procedure", "interventional procedure"), ("therapy", "therapeutics"),
-                                   ("treatment", "therapeutics"), ("cavity", "dental caries"),
-                                   ("aggressive", "aggressive behavior"), ("water", "water"), ("condition", "disease"),
-                                   ("immersion", "immersion"), ("sterile", "infertility"), ("syndrome", "syndrome")]
+        self.nonsense_mapping_list = [["therapeutics", "disease", "syndrome", "lactate", "calcium"],
+                                      [("procedure", "interventional procedure"), ("cavity", "dental caries"),
+                                      ("water", "water"), ("immersion", "immersion"), ("sterile", "infertility"),
+                                      ("preserved", "Biologic preservation"), ("fed", "Fish-eye disease"),
+                                      ("preservation", "Biologic preservation"), ("delivery", "Obstetric delivery"),
+                                      ("tolerance", "Immune tolerance"), ("binge", "Binge eating disorder"),
+                                      ("reconstruction", "Reconstructive surgical procedures"),
+                                      ("echo", "Echo protocol"), ("genetic", "Gene therapy"),
+                                      ("regimen", "Treatment protocols")]]
 
     def get_age_and_gender(self, term):
         self.utterance_dict["Age"] = term["Age"]
@@ -58,15 +63,14 @@ class LabelTerms(object):
 
     def get_concept(self, term):
         # avoid including repetitive mapping result
-        if not self.term_index_dict.values() or \
-                        term["Concept Name"] not in zip(*self.term_index_dict.values())[0]:
+        if not self.term_index_dict.values() or term["Concept Name"] not in zip(*self.term_index_dict.values())[0]:
             position_list = term["Positional Info"]
             term_start = position_list[0]
             term_length = position_list[1]
             index = term_start - self.utterance_start
             term_word = self.text[index:index + term_length]
-            if not self.wrong_mapping_test(term["Concept Name"], term_word) and self.part_of_speech_noun(term_word) and\
-                    term["Semantic Types"] not in ["[Population Group]", "[Age Group]"]:
+            if not self.nonsense_mapping_test(term["Concept Name"], term_word) and self.part_of_speech_noun(term_word)\
+                    and term["Semantic Types"] not in ["[Population Group]", "[Age Group]"]:
                 if self.test:
                     self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"], term_word)
                 else:
@@ -77,8 +81,11 @@ class LabelTerms(object):
             index = self.text.index(time)
             self.term_index_dict[index] = (time, "[Time Point]")
 
-    def wrong_mapping_test(self, term_concept, term_word):
-        return (term_word.lower(), term_concept.lower()) in self.wrong_mapping_list
+    def nonsense_mapping_test(self, term_concept, term_word):
+        if term_concept.lower() in self.nonsense_mapping_list[0]:
+            return True
+        else:
+            return (term_word.lower(), term_concept.lower()) in self.nonsense_mapping_list[1]
 
     def clean_mapping_result(self):
         """Empty the utterance mapping result if there is only time point information there."""
