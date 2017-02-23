@@ -5,7 +5,6 @@ Xuenan Pi
 11/01/2016
 """
 
-import ast
 from time_point import past_regex
 
 
@@ -38,6 +37,25 @@ class LabelTerms(object):
         else:
             self.utterance_dict["Gender"] = term["Gender"]
 
+    def part_of_speech_noun(self, term_word):
+        """ For the word that can be found in the syntax unit, only keep the word if the word is a noun."""
+        term_list, part_of_speech_list = zip(*self.syntax_unit)[0], zip(*self.syntax_unit)[1]
+        if term_word not in term_list:
+            term_index = None
+            # sometimes the term word is a phrase
+            # select the last word in the phrase, as usually noun is the last word
+            term_word = term_word.split()[-1]
+            for term in term_list:
+                if term_word in term:
+                    term_index = term_list.index(term)
+            # skip the word that cannot be found in the syntax unit
+            if not term_index:
+                return True
+        else:
+            term_index = term_list.index(term_word)
+        tag = part_of_speech_list[term_index]
+        return tag == "noun" and True or False
+
     def get_concept(self, term):
         # avoid including repetitive mapping result
         if not self.term_index_dict.values() or \
@@ -47,13 +65,12 @@ class LabelTerms(object):
             term_length = position_list[1]
             index = term_start - self.utterance_start
             term_word = self.text[index:index + term_length]
-            if not self.wrong_mapping_test(term["Concept Name"], term_word) and \
+            if not self.wrong_mapping_test(term["Concept Name"], term_word) and self.part_of_speech_noun(term_word) and\
                     term["Semantic Types"] not in ["[Population Group]", "[Age Group]"]:
                 if self.test:
                     self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"], term_word)
                 else:
                     self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
-
 
     def get_time_point(self, phrase):
         for time in phrase["Time Point"]:
@@ -81,11 +98,9 @@ class LabelTerms(object):
                     # concept term
                     else:
                         self.get_concept(term)
-                # print self.term_index_dict
             # time point
             elif "Time Point" in phrase.keys():
                 self.get_time_point(phrase)
-                # print self.term_index_dict
 
         if self.term_index_dict:
             for key in sorted(self.term_index_dict.keys()):

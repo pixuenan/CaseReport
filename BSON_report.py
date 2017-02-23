@@ -35,7 +35,6 @@ class BSONReport(object):
                 if self.test:
                     term_dict[semantic_type] += [term[0] and tuple(term[:2]+[term[-1]]) or tuple([term[1]]+[term[-1]])]
                 else:
-                    print term
                     term_dict[semantic_type] += [term[0] and tuple(term[:2]) or tuple([term[1]])]
             else:
                 if self.test:

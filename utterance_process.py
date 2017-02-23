@@ -7,6 +7,7 @@ Xuenan Pi
 
 import ast
 
+
 class UtteranceProcess(object):
 
     def __init__(self, utterance):
@@ -139,7 +140,9 @@ class UtteranceProcess(object):
                     # DO NOT use "," to split the string since comma could also be one unit
                     unit = unit_info.split("),")
                     # unit = ["([input_text]", "tag(lexical category", "tokens([])", "syntax cat(["]
-                    unit_list += [(unit[0][2:-1], unit[1].startswith("tag(") and unit[1][4:] or None)]
+                    word_list = unit[0][2:-1].split(',')
+                    phrase = ("-" in word_list or '/' in word_list) and "".join(word_list) or " ".join(word_list)
+                    unit_list += [(phrase, unit[1].startswith("tag(") and unit[1][4:] or None)]
         return unit_list
 
 
