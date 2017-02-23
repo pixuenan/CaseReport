@@ -10,8 +10,9 @@ from time_point import past_regex
 
 
 class LabelTerms(object):
-    def __init__(self, utterance):
+    def __init__(self, utterance, test=False):
         self.input_utterance = utterance
+        self.test = test
 
         self.utterance_start = int(self.input_utterance[0]["Utterance start index"][0])
         self.text = self.input_utterance[0]["Utterance text"]
@@ -48,7 +49,11 @@ class LabelTerms(object):
             term_word = self.text[index:index + term_length]
             if not self.wrong_mapping_test(term["Concept Name"], term_word) and \
                     term["Semantic Types"] not in ["[Population Group]", "[Age Group]"]:
-                self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
+                if self.test:
+                    self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"], term_word)
+                else:
+                    self.term_index_dict[index] = (term["Concept Name"], term["Semantic Types"])
+
 
     def get_time_point(self, phrase):
         for time in phrase["Time Point"]:
@@ -76,9 +81,11 @@ class LabelTerms(object):
                     # concept term
                     else:
                         self.get_concept(term)
+                # print self.term_index_dict
             # time point
             elif "Time Point" in phrase.keys():
                 self.get_time_point(phrase)
+                # print self.term_index_dict
 
         if self.term_index_dict:
             for key in sorted(self.term_index_dict.keys()):

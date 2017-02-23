@@ -122,7 +122,7 @@ def time_point_extraction(matched_utterances):
     return matched_utterances
 
 
-def main(input_file):
+def main(input_file, test_set=False):
     # group utterance
     grouped_utterances = process(input_file)
 
@@ -137,30 +137,31 @@ def main(input_file):
 
     # detect time point string in the utterance
     time_point_detected_utterances = time_point_extraction(matched_utterances)
+    # print time_point_detected_utterances
 
     # label time point string to the mapped terms
     time_point_labeled_utterances = []
     for utterance in time_point_detected_utterances:
         # print utterance
-        time_point_labeled_utterances += [LabelTerms(utterance).main()]
+        time_point_labeled_utterances += [LabelTerms(utterance, test=test_set).main()]
         # print LabelTerms(utterance).main()
 
     # generate report
-    report = BSONReport()
+    report = BSONReport(test=test_set)
     report.generate_report(time_point_labeled_utterances, input_file.split(".")[0] + ".MetaMap.processed.json")
 
 
 if __name__ == '__main__':
     # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\JMCR\\"
-    folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\"
-    for file_name in file_in_the_folder(folder_name):
-        if file_name.endswith(".MetaMap.json"):
-            print file_name
-            main(folder_name + file_name)
-            print "finished", file_name
-    # file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\dedaad80e4874ae9a947aff7593e4d4eJMCR.MetaMap.json"
-    # main(file_name)
-
+    # folder_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\"
+    # for file_name in file_in_the_folder(folder_name):
+    #     if file_name.endswith(".MetaMap.json"):
+    #         print file_name
+    #         main(folder_name + file_name)
+            # print "finished", file_name
+    file_name = "C:\\Users\\pix1\\PycharmProjects\\CaseReport\\testcases\\Dataset\\03f48f4c55d9f743b4c25d230dfbeb44.MetaMap.json"
+    main(file_name, test_set=True)
+#
 
 #
 #

@@ -9,7 +9,8 @@ import json
 
 
 class BSONReport(object):
-    def __init__(self):
+    def __init__(self, test=False):
+        self.test = test
         self.report = dict()
         self.report["Age"] = None
         self.report["Gender"] = None
@@ -31,9 +32,16 @@ class BSONReport(object):
         for term in term_list:
             semantic_type = term[2]
             if semantic_type in term_dict:
-                term_dict[semantic_type] += term[0] and [tuple(term[:2])] or [term[1]]
+                if self.test:
+                    term_dict[semantic_type] += [term[0] and tuple(term[:2]+[term[-1]]) or tuple([term[1]]+[term[-1]])]
+                else:
+                    print term
+                    term_dict[semantic_type] += [term[0] and tuple(term[:2]) or tuple([term[1]])]
             else:
-                term_dict[semantic_type] = term[0] and [tuple(term[:2])] or [term[1]]
+                if self.test:
+                    term_dict[semantic_type] = [term[0] and tuple(term[:2]+[term[-1]]) or tuple([term[1]]+[term[-1]])]
+                else:
+                    term_dict[semantic_type] = [term[0] and tuple(term[:2]) or tuple([term[1]])]
         self.report["Terms"][key] = term_dict
 
     def process_utterance(self, utterance):
@@ -45,9 +53,9 @@ class BSONReport(object):
             self.report["Gender"] = utterance["Gender"]
         for term in utterance["mapping result"]:
             if term[0][0] == "Current":
-                self.report["Terms"]["Current"] += [tuple([term[0][1]] + list(term[1]))]
+                self.report["Terms"]["Current"] += [[term[0][1]] + list(term[1])]
             else:
-                self.report["Terms"]["Past"] += [tuple([term[0][1]] + list(term[1]))]
+                self.report["Terms"]["Past"] += [[term[0][1]] + list(term[1])]
 
     def generate_report(self, processed_case, output_file_name):
         output_file = open(output_file_name, "w+")
