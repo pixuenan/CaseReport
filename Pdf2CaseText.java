@@ -60,7 +60,7 @@ public class Pdf2CaseText {
 		/* sample pdf file*/
 		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\";
 		File folder = new File(input_folder);
-		/* Output a log file for the PDF file name, paper title and correspond output JSON file name*/
+		/* Comment out the following line to output a log file for the PDF file name, paper title and correspond output JSON file name*/
 		System.setOut(new PrintStream(new FileOutputStream(input_folder + "log.txt")));
 		
 		File[] listOfFiles = folder.listFiles();
@@ -189,9 +189,6 @@ public class Pdf2CaseText {
 				Paragraph para = pdf.body_and_heading.get(i);
 //				System.out.println(para.text);
 				
-				if (para.text.startsWith("Received:")){
-					reportTxt.put("Received Date", para.text);
-				}
 				String paraText = para.text.replace("\n", "").replace("\r", "").toLowerCase();
 				if (para.isHeading() && (paraText.contains("introduction") || paraText.contains("background"))){
 					introPrintFlag = true; 
