@@ -6,7 +6,7 @@ from se.sics.prologbeans import PrologSession
 from gov.nih.nlm.nls.metamap import MetaMapApi, MetaMapApiImpl, Result
 
 
-class TestApi:
+class MetaMapCaseText:
     def __init__(self):
         self.api = MetaMapApiImpl()
         self.result = dict()
@@ -44,7 +44,7 @@ class TestApi:
 
         input_json = self.read_input(input_file)
 
-        input_text = "\n".join(input_json["Case presentation"]).encode("ascii", "replace")
+        input_text = "\n".join(input_json["Case presentation"]).encode("ascii","replace")
 
         if len(server_options):
             self.api.setOptions(server_options)
@@ -63,10 +63,10 @@ class TestApi:
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('input file and output file needed')
+        print('input file needed')
         exit(1)
     else:
-        inst = TestApi()
+        inst = MetaMapCaseText()
         i = 0
         while i < len(sys.argv):
             if sys.argv[i] == "-i":
