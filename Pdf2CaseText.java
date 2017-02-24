@@ -47,7 +47,7 @@ import java.io.Writer;
 /**
  * This is the main class for convert pdf to text from Journal of Medical reports
  */
-public class Pdf2TextJMCR {
+public class Pdf2CaseText {
 	
 	public static void main(String[]  args) throws IOException {
 		
@@ -59,12 +59,10 @@ public class Pdf2TextJMCR {
 		
 		/* sample pdf file*/
 		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\";
-		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\");
-		System.setOut(new PrintStream(new FileOutputStream("C:\\Users\\pix1\\Downloads\\casereport\\Dataset\\output.txt")));
+		File folder = new File(input_folder);
+		/* Output a log file for the PDF file name, paper title and correspond output JSON file name*/
+		System.setOut(new PrintStream(new FileOutputStream(input_folder + "log.txt")));
 		
-//		String input_folder = "C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\";
-//		File folder = new File("C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\");
-//		System.setOut(new PrintStream(new FileOutputStream("C:\\Users\\pix1\\Downloads\\casereport\\sectiontest\\output.txt")));
 		File[] listOfFiles = folder.listFiles();
 
 		    for (int i = 0; i < listOfFiles.length; i++) {
